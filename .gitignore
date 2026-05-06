@@ -1,0 +1,43 @@
+# Node
+node_modules/
+.pnpm-debug.log*
+.npm/
+dist/
+dist-ssr/
+.vite/
+
+# Rust / Tauri
+src-tauri/target/
+src-tauri/Cargo.lock.bak
+src-tauri/gen/schemas/
+
+# macOS
+.DS_Store
+*.swp
+*.swo
+
+# IDE
+.vscode/
+.idea/
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?
+
+# Env / local
+.env
+.env.local
+.env.*.local
+
+# Build artifacts
+*.dmg
+*.app
+release/
+
+# Logs
+*.log
+logs/
+
+# Test
+coverage/
