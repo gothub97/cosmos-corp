@@ -1,6 +1,6 @@
 [package]
 name = "cosmos-corp"
-version = "0.1.0"
+version = "0.2.0"
 description = "Cosmos Corp: a macOS RPG that teaches DevOps fundamentals"
 authors = ["Hubert Gauthier <hubertgauthier5@gmail.com>"]
 edition = "2021"

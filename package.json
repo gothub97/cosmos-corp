@@ -15,7 +15,7 @@
     "lab:build": "bash scripts/build-images.sh",
     "typecheck": "tsc --noEmit -p tsconfig.json",
     "changeset": "changeset",
-    "version-packages": "changeset version",
+    "version-packages": "changeset version && node scripts/sync-version.mjs",
     "release:tag": "node scripts/tag-release.mjs"
   },
   "dependencies": {
