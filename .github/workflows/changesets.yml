@@ -44,6 +44,9 @@ jobs:
           publish: pnpm run release:tag
           commit: "chore: version packages"
           title: "chore: version packages"
+          # Let the Release workflow (tauri-action) own the GitHub Release so it
+          # is a full release with the signed DMG attached, not a pre-release.
+          createGithubReleases: false
         env:
           # PAT so the action can open the version PR without the repo-level
           # "Allow GitHub Actions to create and approve pull requests" setting.
