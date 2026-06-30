@@ -13,6 +13,7 @@ use tracing_subscriber::{fmt, prelude::*, EnvFilter};
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
     init_tracing();
+    harden_path();
 
     tauri::Builder::default()
         .plugin(tauri_plugin_opener::init())
@@ -40,6 +41,29 @@ pub fn run() {
         ])
         .run(tauri::generate_context!())
         .expect("error while running cosmos-corp");
+}
+
+/// macOS GUI apps launched from Finder/Dock inherit a minimal PATH
+/// (`/usr/bin:/bin:/usr/sbin:/sbin`) that omits where Docker Desktop and
+/// Homebrew install their CLIs. Without this, the PTY's `docker exec` and any
+/// other child process fail with "docker ... was not found in PATH" even though
+/// the daemon is reachable. Prepend the common install locations (de-duped,
+/// existing entries preserved) so child processes can find them. Launching from
+/// a terminal already has a full PATH, so this is a no-op there.
+fn harden_path() {
+    const EXTRA: &[&str] = &[
+        "/opt/homebrew/bin",
+        "/usr/local/bin",
+        "/Applications/Docker.app/Contents/Resources/bin",
+    ];
+    let current = std::env::var("PATH").unwrap_or_default();
+    let mut dirs: Vec<String> = EXTRA.iter().map(|s| s.to_string()).collect();
+    for entry in current.split(':').filter(|s| !s.is_empty()) {
+        if !dirs.iter().any(|d| d == entry) {
+            dirs.push(entry.to_string());
+        }
+    }
+    std::env::set_var("PATH", dirs.join(":"));
 }
 
 fn init_tracing() {

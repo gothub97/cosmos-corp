@@ -142,7 +142,33 @@ pub fn open_container_pty(
         args.push(u);
     }
     args.extend(["--", container_id, "bash", "-l"]);
-    open_pty(app, "docker", &args, description, DEFAULT_SIZE)
+    let docker = docker_bin();
+    open_pty(app, &docker, &args, description, DEFAULT_SIZE)
+}
+
+/// Resolve the `docker` binary to an absolute path. macOS GUI apps inherit a
+/// minimal PATH that omits the usual install locations, so spawning a bare
+/// "docker" fails even when the daemon is reachable (the lifecycle calls go
+/// through the socket via bollard, but the interactive PTY needs the CLI).
+/// Honor `$DOCKER_BIN`, then probe the common spots, then fall back to a bare
+/// "docker" for terminal launches where PATH is already complete.
+fn docker_bin() -> String {
+    if let Ok(p) = std::env::var("DOCKER_BIN") {
+        if !p.trim().is_empty() {
+            return p;
+        }
+    }
+    const CANDIDATES: &[&str] = &[
+        "/usr/local/bin/docker",
+        "/opt/homebrew/bin/docker",
+        "/Applications/Docker.app/Contents/Resources/bin/docker",
+    ];
+    for c in CANDIDATES {
+        if std::path::Path::new(c).exists() {
+            return (*c).to_string();
+        }
+    }
+    "docker".to_string()
 }
 
 fn spawn_reader_thread(app: AppHandle, mut reader: Box<dyn Read + Send>, description: String) {
