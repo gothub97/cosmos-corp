@@ -23,6 +23,9 @@ jobs:
       - uses: actions/checkout@v4
         with:
           fetch-depth: 0
+          # Use the PAT so the tag pushed by the publish step triggers the
+          # Release workflow (the default GITHUB_TOKEN cannot trigger workflows).
+          token: ${{ secrets.RELEASE_PAT }}
 
       - uses: pnpm/action-setup@v4
 
@@ -42,4 +45,6 @@ jobs:
           commit: "chore: version packages"
           title: "chore: version packages"
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          # PAT so the action can open the version PR without the repo-level
+          # "Allow GitHub Actions to create and approve pull requests" setting.
+          GITHUB_TOKEN: ${{ secrets.RELEASE_PAT }}
