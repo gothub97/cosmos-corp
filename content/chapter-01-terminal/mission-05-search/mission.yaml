@@ -1,0 +1,65 @@
+id: ch01.m05.search
+title: "Searching the codebase"
+chapter: 1
+order: 5
+container_image: cosmos/terminal-base:latest
+intro_dialogue: dialogue.md
+outro_dialogue: outro.md
+setup: setup.sh
+check: check.sh
+summary: "Find files and content - find, grep, wc."
+
+objectives:
+  - id: found_md_files
+    label: "Use `find` to list every .md file under ~/repo and save them to ~/repo-md.txt"
+    lesson:
+      command: "find"
+      summary: "Walks a directory tree and prints paths matching the filters you give. Most beginner-useful filter is `-name 'pattern'` (with shell-style wildcards)."
+      syntax: "find [PATH] [TESTS]"
+      examples:
+        - input: "find ."
+          note: "List every file and folder under the current directory, recursively."
+        - input: "find . -name '*.md'"
+          note: "Only paths ending in .md. Quote the pattern so the shell doesn't expand it before find sees it."
+        - input: "find . -type f -name '*.log' -mtime -1"
+          note: "Combine filters: regular files, .log extension, modified in the last day."
+    hints:
+      - "You want a list of all Markdown files inside `~/repo`, in any subfolder."
+      - "`find` walks a directory tree. Filter by `-name '*.md'` and redirect the output."
+      - "Try `find ~/repo -name '*.md' > ~/repo-md.txt`."
+
+  - id: grepped_todo
+    label: "Use `grep` to find every line containing TODO under ~/repo, save to ~/todos.txt"
+    lesson:
+      command: "grep"
+      summary: "Searches for lines matching a pattern. Add `-r` (or `-R`) to search recursively through every file under a directory. Add `-i` for case-insensitive, `-n` for line numbers, `-l` for just the filenames."
+      syntax: "grep [OPTIONS] PATTERN [PATH...]"
+      examples:
+        - input: "grep TODO file.txt"
+          note: "Print every line in file.txt that contains TODO."
+        - input: "grep -r TODO ."
+          note: "`-r` walks every file under the current directory recursively."
+        - input: "grep -rn -i 'fix me' src/"
+          note: "Recursive, case-insensitive, with line numbers."
+    hints:
+      - "We want lines, not filenames. Search recursively and dump matches to a file."
+      - "`grep -r TODO ~/repo` searches recursively. Redirect with `>`."
+      - "Try `grep -r TODO ~/repo > ~/todos.txt`."
+
+  - id: counted_todos
+    label: "Save the *number* of TODO lines to ~/todo-count.txt"
+    lesson:
+      command: "wc"
+      summary: "Counts lines, words, or bytes. `-l` for line count is the one you'll use 90% of the time. Pair it with a pipe to count whatever's flowing through."
+      syntax: "wc [-l] [-w] [-c] [FILE]"
+      examples:
+        - input: "wc -l todos.txt"
+          note: "Print the line count and the filename."
+        - input: "wc -l < todos.txt"
+          note: "Without the filename - just the number, easier to redirect."
+        - input: "grep -r TODO . | wc -l"
+          note: "Pipe a grep into wc to count matches without an intermediate file."
+    hints:
+      - "Count the lines in the file you just produced."
+      - "Pipe `~/todos.txt` into `wc -l`. Or run `grep -rc TODO ~/repo` if you're feeling fancy."
+      - "Try `wc -l < ~/todos.txt > ~/todo-count.txt`."

@@ -1,0 +1,73 @@
+id: ch01.m07.env-aliases-scripts
+title: "Environment, aliases & your first script"
+chapter: 1
+order: 7
+container_image: cosmos/terminal-base:latest
+intro_dialogue: dialogue.md
+outro_dialogue: outro.md
+setup: setup.sh
+check: check.sh
+summary: "Personalize your shell - export, alias, and write a runnable .sh."
+
+objectives:
+  - id: exported_env
+    label: "Export an environment variable named COSMOS_ROLE"
+    lesson:
+      command: "export"
+      summary: "Sets a shell variable AND marks it for export to any program the shell launches. Without `export`, variables stay private to the current shell. With it, every child process inherits them - that's how config gets passed to apps in dev and prod."
+      syntax: "export NAME=VALUE"
+      examples:
+        - input: "export COSMOS_ROLE=engineer"
+          note: "Set and export in one line."
+        - input: "echo $COSMOS_ROLE"
+          output: "engineer"
+          note: "$NAME reads the value back. Works in any shell that inherited the export."
+        - input: "export PATH=\"$HOME/bin:$PATH\""
+          note: "Common idiom: prepend a directory to PATH. Quotes prevent the value from being split on whitespace."
+    hints:
+      - "Make a variable available to any program your shell launches."
+      - "`export NAME=value` does it. Pick anything you like for the value."
+      - "Try `export COSMOS_ROLE=engineer`."
+
+  - id: defined_alias
+    label: "Define an alias `gs` for `git status`"
+    lesson:
+      command: "alias"
+      summary: "Creates a shell shortcut: typing the alias is the same as typing the original command. Most people add their favourites to `~/.bashrc` so they're available in every new shell."
+      syntax: "alias NAME='COMMAND'"
+      examples:
+        - input: "alias gs='git status'"
+          note: "Quotes are important - the value is one string, not multiple arguments."
+        - input: "alias ll='ls -lah'"
+          note: "Common one: long, all-files, human-readable sizes."
+        - input: "alias"
+          note: "Run with no arguments to see every alias currently defined."
+    hints:
+      - "Aliases are little nicknames for commands. Saves a lot of typing."
+      - "`alias gs='git status'` (note the quotes - the value is one string)."
+      - "Try `alias gs='git status'`."
+
+  - id: wrote_hello_script
+    label: "Write ~/work/hello.sh that prints `hello cosmos` when run"
+    lesson:
+      command: "#!"
+      summary: "The *shebang* - the first line of a script that tells the OS which interpreter to run. `#!/usr/bin/env bash` is the portable, modern form: it asks `env` to find `bash` on the user's PATH instead of hard-coding `/bin/bash`."
+      syntax: "#!INTERPRETER"
+      examples:
+        - input: "#!/usr/bin/env bash"
+          note: "Always the first line. After it, just write commands as you would at the prompt."
+        - input: "#!/usr/bin/env python3"
+          note: "Same trick for Python scripts, Ruby, Node, etc."
+        - input: "#!/bin/bash"
+          note: "Older form. Works, but breaks if bash lives somewhere unusual."
+    hints:
+      - "Use `nano ~/work/hello.sh` (or `vim`) to create the file. It needs a shebang and an echo."
+      - "First line `#!/usr/bin/env bash`, second line `echo \"hello cosmos\"`."
+      - "After saving, make it executable with `chmod +x ~/work/hello.sh`."
+
+  - id: ran_hello_script
+    label: "Run ~/work/hello.sh - its output should land in ~/work/hello.out"
+    hints:
+      - "Run your script and redirect its output into `~/work/hello.out`."
+      - "Once the script is executable: `~/work/hello.sh > ~/work/hello.out`."
+      - "Try `~/work/hello.sh > ~/work/hello.out` (or `bash ~/work/hello.sh > ~/work/hello.out`)."

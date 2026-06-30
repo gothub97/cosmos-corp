@@ -1,0 +1,71 @@
+id: ch02.m08.reset-revert-restore
+title: "Undoing things: reset vs revert vs restore"
+chapter: 2
+order: 8
+container_image: cosmos/git-lab:latest
+intro_dialogue: dialogue.md
+outro_dialogue: outro.md
+setup: setup.sh
+check: check.sh
+summary: "Three different 'undo' commands - when to use which."
+
+objectives:
+  - id: did_restore
+    label: "Use git restore to throw away the unstaged change in notes.md"
+    lesson:
+      command: "git restore"
+      summary: "Undoes changes in your *working tree* by overwriting a file with its committed version. Doesn't touch history. Without flags it operates on the working tree; `--staged` operates on the staging area instead."
+      syntax: "git restore [--staged] [--source=<rev>] <pathspec>..."
+      examples:
+        - input: "git restore notes.md"
+          note: "Discards working-tree edits to notes.md - the file goes back to whatever HEAD says it should look like. Cannot be undone, so be sure!"
+        - input: "git restore --staged scratch.txt"
+          note: "Removes scratch.txt from the staging area but leaves the file alone in the working tree. Same effect as the old `git reset HEAD scratch.txt`."
+        - input: "git restore --source=HEAD~3 README.md"
+          note: "Time-travel: restore README.md to its state three commits ago (without changing any history)."
+    hints:
+      - "I edited notes.md but you don't like the change - throw it away."
+      - "There's a git command literally called `restore` that does this for working-tree files."
+      - "Run `git restore notes.md`."
+
+  - id: did_reset
+    label: "Use git reset to unstage scratch.txt"
+    lesson:
+      command: "git reset"
+      summary: "Moves the current branch (and optionally the staging area or working tree) to a specified commit. Three flavours: `--soft` (move HEAD only), `--mixed` *(default - also reset the index)*, `--hard` *(also blow away working tree changes - dangerous)*. Without a path it operates on the whole repo; with a path it just unstages that file."
+      syntax: "git reset [--soft|--mixed|--hard] [<commit>] [<paths>...]"
+      examples:
+        - input: "git reset HEAD scratch.txt"
+          output: |
+            Unstaged changes after reset:
+            M       scratch.txt
+          note: "Just unstages scratch.txt - the file (modified or untracked) stays on disk. Modern git also lets you say `git restore --staged scratch.txt`, which is clearer."
+        - input: "git reset --soft HEAD~1"
+          note: "Undo the *last commit* but keep its changes staged. Great for 'I committed too early.'"
+        - input: "git reset --hard HEAD~1"
+          note: "Nuclear option - undo the last commit AND throw away its changes from your working tree. Make sure nothing is precious before running this."
+    hints:
+      - "I staged scratch.txt for you. You don't actually want it in the next commit - unstage it."
+      - "`git reset HEAD scratch.txt` (or the modern equivalent `git restore --staged scratch.txt`)."
+      - "Run `git reset HEAD scratch.txt` and confirm with `git status`."
+
+  - id: did_revert
+    label: "Use git revert to undo the 'Typo: capatin' commit publicly"
+    lesson:
+      command: "git revert"
+      summary: "Creates a *new commit* that undoes the changes of an earlier one. Unlike `reset`, it doesn't rewrite history - the bad commit is still there, followed by an explicit 'undo' commit. Always safe on shared branches because it adds, never destroys."
+      syntax: "git revert [--no-edit] <commit>"
+      examples:
+        - input: "git revert --no-edit HEAD~1"
+          output: |
+            [main 9c7d3b1] Revert "Typo: capatin"
+             1 file changed, 1 deletion(-)
+          note: "Creates a new commit that undoes the *previous* commit. `--no-edit` accepts the default 'Revert ...' message."
+        - input: "git revert <SHA>"
+          note: "You can revert any commit by SHA, not just HEAD~N. Find the SHA with `git log --oneline`."
+        - input: "git revert -m 1 <merge-SHA>"
+          note: "Reverting a merge commit needs `-m 1` to tell git which parent to keep. Niche but eventually useful."
+    hints:
+      - "Look at `git log --oneline` - there's a commit titled 'Typo: capatin' near the top. Undo it with a *new* commit (don't rewrite history)."
+      - "`git revert <commit>` creates a brand-new commit that reverses the change. Use `--no-edit` to skip the message editor."
+      - "Run `git revert --no-edit <SHA>` (find the SHA with `git log --oneline`)."

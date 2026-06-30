@@ -1,0 +1,66 @@
+id: ch01.m01.first-steps
+title: "First steps"
+chapter: 1
+order: 1
+container_image: cosmos/terminal-base:latest
+intro_dialogue: dialogue.md
+outro_dialogue: outro.md
+setup: setup.sh
+check: check.sh
+summary: "Find your bearings - pwd, ls, cd."
+
+objectives:
+  - id: printed_pwd
+    label: "Print your current directory"
+    lesson:
+      command: "pwd"
+      summary: "Prints the absolute path of the directory you're currently in. Every shell session has a current directory; `pwd` answers *where am I right now?*"
+      syntax: "pwd"
+      examples:
+        - input: "pwd"
+          output: "/home/dev"
+          note: "Always shows the full path, never a shortcut like ~ or .."
+    hints:
+      - "Every shell session starts somewhere. Where are you right now?"
+      - "There's a three-letter command for 'print working directory'."
+      - "Try `pwd`."
+
+  - id: listed_welcome
+    label: "Look inside the welcome folder"
+    lesson:
+      command: "ls"
+      summary: "Lists the files and folders inside a directory. Run it on its own to list the current directory, or pass a path to peek elsewhere without `cd`-ing in."
+      syntax: "ls [OPTIONS] [PATH]"
+      examples:
+        - input: "ls"
+          output: "welcome"
+          note: "No path = list the current directory."
+        - input: "ls welcome"
+          output: "README.md  crew  manifest.log  notes  schedule.txt"
+          note: "Pass a path to list any folder."
+        - input: "ls -la welcome"
+          note: "`-l` for the long format, `-a` to show hidden dotfiles."
+    hints:
+      - "There's a folder called `welcome` waiting for you. List what's in it."
+      - "The command that lists directory contents is two letters."
+      - "Try `ls welcome`."
+
+  - id: entered_crew
+    label: "Step into welcome/crew"
+    lesson:
+      command: "cd"
+      summary: "Changes your current directory. The shell remembers where you are; many later commands operate on the current directory unless told otherwise."
+      syntax: "cd [PATH]"
+      examples:
+        - input: "cd welcome"
+          note: "Move into the welcome folder."
+        - input: "cd welcome/crew"
+          note: "Slashes chain folders together."
+        - input: "cd .."
+          note: "Two dots = go up one level."
+        - input: "cd"
+          note: "No path at all = back to your home directory."
+    hints:
+      - "Move into the `crew` subfolder so you can read about the team."
+      - "Use the command that *changes directory*."
+      - "Try `cd welcome/crew` (then `pwd` to confirm)."

@@ -1,0 +1,13 @@
+id: ch01
+title: "The Terminal"
+order: 1
+summary: |
+  Week one at Cosmos Corp. Sage shows you around the file system, the
+  text-editing tools, and the way pipes glue everything together.
+intro: |
+  You're three coffees in. Your laptop boots up to a dark window with a
+  blinking cursor, and Sage is on Slack: *"All yours. Don't worry about
+  breaking things - that's what the sandbox is for."*
+
+  By the end of the week you'll be reading logs, fixing files, and chaining
+  commands like it's nothing. Let's start small.

@@ -1,0 +1,70 @@
+id: ch03.m04.services
+title: "Services - giving pods an address"
+chapter: 3
+order: 4
+container_image: cosmos/k8s-lab:latest
+intro_dialogue: dialogue.md
+outro_dialogue: outro.md
+setup: setup.sh
+check: check.sh
+summary: "Expose a Deployment as a ClusterIP, list services, also expose a NodePort."
+
+cluster_view:
+  watch_namespace: default
+  watch_kinds: [deployment, pod, service]
+  poll_interval_ms: 2000
+
+objectives:
+  - id: exposed_clusterip
+    label: "Expose `web` as a ClusterIP Service named `web`"
+    lesson:
+      command: "kubectl expose"
+      summary: "Creates a Service in front of a Deployment (or Pod, or ReplicaSet) so other workloads can reach it via a stable in-cluster DNS name. The default `--type=ClusterIP` gives you a virtual IP that's only reachable from inside the cluster - perfect for internal east-west traffic."
+      syntax: "kubectl expose <kind>/<name> --port=<p> [--target-port=<p>] [--type=ClusterIP|NodePort]"
+      examples:
+        - input: "kubectl expose deploy/web --port=80 --target-port=80"
+          output: |
+            service/web exposed
+          note: "`--port` is what the *Service* listens on; `--target-port` is what the *pod* listens on. Same number, often."
+        - input: "kubectl expose deploy/web --port=80 --name=web-internal"
+          note: "Use `--name` to override the auto-generated name (it defaults to the kind/name you exposed)."
+    hints:
+      - "There's a kubectl verb that *exposes* a workload as a Service."
+      - "Pass `--port=80` so the Service listens on port 80."
+      - "Run `kubectl expose deploy/web --port=80`."
+
+  - id: listed_services
+    label: "List all Services in the namespace"
+    lesson:
+      command: "kubectl get"
+      summary: "Same `kubectl get` again, this time aimed at services. The columns matter: `TYPE` (ClusterIP / NodePort / LoadBalancer / ExternalName), `CLUSTER-IP` (the virtual address), `EXTERNAL-IP`, `PORT(S)` (service-port:nodeport/protocol when relevant)."
+      syntax: "kubectl get svc [-A] [-o wide]"
+      examples:
+        - input: "kubectl get svc"
+          output: |
+            NAME         TYPE        CLUSTER-IP      EXTERNAL-IP   PORT(S)   AGE
+            kubernetes   ClusterIP   10.43.0.1       <none>        443/TCP   3m
+            web          ClusterIP   10.43.142.18    <none>        80/TCP    5s
+          note: "`svc` is the universal short alias for `services`."
+    hints:
+      - "List services the same way you list pods or nodes."
+      - "Short alias: `svc`."
+      - "Run `kubectl get svc` (or `kubectl get services`)."
+
+  - id: exposed_nodeport
+    label: "Also expose `web` as a NodePort Service named `web-np`"
+    lesson:
+      command: "kubectl expose"
+      summary: "`--type=NodePort` adds a port on every node that forwards into the Service. That makes the workload reachable from *outside* the cluster - useful in development. In production you'd typically use a LoadBalancer or an Ingress, but NodePort is the simplest external path."
+      syntax: "kubectl expose <kind>/<name> --port=<p> --type=NodePort --name=<svc-name>"
+      examples:
+        - input: "kubectl expose deploy/web --port=80 --type=NodePort --name=web-np"
+          output: |
+            service/web-np exposed
+          note: "Now `kubectl get svc` shows two entries - the ClusterIP and the NodePort - both selecting the same pods."
+        - input: "kubectl get svc/web-np -o jsonpath='{.spec.ports[0].nodePort}'"
+          note: "The auto-allocated node port (30000–32767) is in `.spec.ports[*].nodePort`."
+    hints:
+      - "Use the same `kubectl expose` again - but this time pass `--type=NodePort` and `--name=web-np`."
+      - "Otherwise the new Service would collide with the existing `web` ClusterIP."
+      - "Run `kubectl expose deploy/web --port=80 --type=NodePort --name=web-np`."

@@ -1,0 +1,51 @@
+id: ch04.m06.troubleshoot
+title: "Break it, read it, fix it"
+chapter: 4
+order: 6
+container_image: cosmos/flux-lab:latest
+intro_dialogue: dialogue.md
+outro_dialogue: outro.md
+setup: setup.sh
+check: check.sh
+summary: "The capstone: a bad commit has Flux stuck red. Diagnose it through the Flux layer, fix the manifest, push - and watch it heal."
+
+cluster_view:
+  watch_namespace: default
+  watch_kinds: [gitrepository, kustomization, deployment, replicaset, pod]
+  poll_interval_ms: 2000
+
+objectives:
+  - id: found_failure
+    label: "Diagnose why Flux is unhealthy"
+    lesson:
+      command: "flux logs"
+      summary: "When a Kustomization is red, you trace it from the top down. `flux get kustomizations` shows it's not Ready and gives a one-line message. `kubectl describe kustomization cosmos-web` shows the full conditions + events. `flux logs` streams the controllers' own logs - the deepest view, where the reconcile error spells itself out. Together they walk you from *'something's wrong'* to *'the image tag is bad'*."
+      syntax: "flux logs [--kind Kustomization] [--name <name>] [-n <ns>] [--follow]"
+      examples:
+        - input: "flux get kustomizations -n default"
+          output: |
+            NAME         REVISION        SUSPENDED  READY  MESSAGE
+            cosmos-web   main@sha1:bad0  False      False  Health check failed after 30s: ...
+          note: "READY False is the alarm. The MESSAGE is your first clue - start here every time."
+        - input: "kubectl -n default describe kustomization cosmos-web"
+          note: "The `Conditions:` and `Events:` blocks at the bottom say exactly what failed and when - same instinct as `describe pod` from Chapter 3."
+        - input: "flux logs --kind Kustomization --name cosmos-web -n default"
+          note: "The controller's-eye view. When the message above isn't enough, the logs have the raw error."
+    hints:
+      - "Flux is red. Start at the Flux layer and work down - don't guess."
+      - "Get the status (`flux get kustomizations -n default`), then the detail (`kubectl describe kustomization cosmos-web -n default`) or the logs (`flux logs`)."
+      - "Trace it all the way to the pod: `kubectl get pods -n default` will show the real root cause - an image that can't be pulled."
+
+  - id: fixed_and_pushed
+    label: "Fix the manifest in git and push the correction"
+    hints:
+      - "You found it: the image tag in the manifest is bogus. Fix it the GitOps way - not with `kubectl edit`, but with a commit."
+      - "Edit `~/work/cosmos-deploy/deploy/cosmos-web.yaml`, set the image back to `nginx:alpine`, save."
+      - "Then `git -C ~/work/cosmos-deploy commit -am \"fix cosmos-web image\"` and `git -C ~/work/cosmos-deploy push`."
+
+  - id: healthy_again
+    label: "Reconcile and confirm Flux is green again"
+    hints:
+      - "Push done - now make Flux pull the fix and re-apply: `flux reconcile kustomization cosmos-web --with-source -n default`."
+      - "Watch the failed pods get replaced by healthy ones in the cluster view."
+      - "Confirm the loop is closed: `flux get kustomizations -n default` reads READY True, and `kubectl get deploy cosmos-web -n default` is available again."

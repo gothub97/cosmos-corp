@@ -1,0 +1,32 @@
+# Reference Deployment used by Chapter 3 missions as a "look at this" example.
+# Missions don't `kubectl apply` this directly (they create their own with
+# `kubectl create deployment`) - it's here so the player can `cat` it during
+# the dialogue beats and see the YAML shape they'll meet on the job.
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: web-sample
+  labels:
+    app: web-sample
+    mission: example
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: web-sample
+  template:
+    metadata:
+      labels:
+        app: web-sample
+    spec:
+      containers:
+        - name: web
+          image: nginx:alpine
+          ports:
+            - containerPort: 80
+          readinessProbe:
+            httpGet:
+              path: /
+              port: 80
+            initialDelaySeconds: 2
+            periodSeconds: 5

@@ -1,0 +1,16 @@
+id: ch02
+title: "The Codebase"
+order: 2
+summary: |
+  Week two at Cosmos Corp. Sage hands you the keys to the company repo and
+  walks you through git from scratch - the snapshot model, branches, the
+  remote dance, and what to do when the merge goes sideways.
+intro: |
+  Sage drops a sticky note on your desk: *"This is your week. By Friday
+  you'll be opening pull requests, resolving conflicts in your sleep, and
+  cleaning up history without flinching. We start with the basics - what a
+  commit even *is* - and work up. Same as last week: there is no breaking
+  the sandbox."*
+
+  By the end of the chapter you'll be running the same commands you'll use
+  on every job, every day, for the rest of your career. Let's go.

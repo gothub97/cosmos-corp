@@ -1,0 +1,117 @@
+id: ch02.m01.init-add-commit
+title: "What's a commit?"
+chapter: 2
+order: 1
+container_image: cosmos/git-lab:latest
+intro_dialogue: dialogue.md
+outro_dialogue: outro.md
+setup: setup.sh
+check: check.sh
+summary: "git init, status, add, commit, log - your first repo."
+
+objectives:
+  - id: did_init
+    label: "Turn ~/work/repo into a git repository"
+    lesson:
+      command: "git init"
+      summary: "Turns an ordinary folder into a git repository by creating a hidden `.git/` directory inside it. From that moment on, git can track every file in the folder."
+      syntax: "git init [-b <branch>] [<path>]"
+      examples:
+        - input: "cd ~/work/repo && git init"
+          output: |
+            Initialized empty Git repository in /home/dev/work/repo/.git/
+          note: "Run this once, in the folder you want to track."
+        - input: "git init -b main my-project"
+          note: "`-b main` sets the starting branch (handy if your git is older). It also creates the folder if missing."
+    hints:
+      - "You're in `~/work/repo` already. Git won't touch a folder until you tell it to."
+      - "There's a one-word git command that creates the hidden `.git/` directory."
+      - "Run `git init` from inside `~/work/repo`."
+
+  - id: saw_status
+    label: "Ask git what it sees"
+    lesson:
+      command: "git status"
+      summary: "Shows what's going on in the repo right now: which branch you're on, which files git is tracking, and which ones are modified or staged. Run it constantly - it's the most-used command in git."
+      syntax: "git status"
+      examples:
+        - input: "git status"
+          output: |
+            On branch main
+
+            No commits yet
+
+            Untracked files:
+              (use "git add <file>..." to include in what will be committed)
+                    notes.md
+                    roster.txt
+
+            nothing added to commit yet
+          note: "Right after `git init`, your files are 'untracked' - git sees them but isn't following them yet."
+    hints:
+      - "Now that the repo exists, find out what git thinks of it."
+      - "There's a command that *prints the status* of the working tree."
+      - "Run `git status`."
+
+  - id: staged_files
+    label: "Stage notes.md and roster.txt for the next commit"
+    lesson:
+      command: "git add"
+      summary: "Adds files to the *staging area* - the place where you assemble the next commit. Staged files will be saved on the next `git commit`. Unstaged changes won't."
+      syntax: "git add <pathspec>..."
+      examples:
+        - input: "git add notes.md"
+          note: "Stage one file."
+        - input: "git add notes.md roster.txt"
+          note: "Stage several files at once."
+        - input: "git add ."
+          note: "Stage everything in (and below) the current directory. Quick but be careful - it can sweep up files you didn't mean to."
+    hints:
+      - "Git won't commit anything that isn't *staged* yet."
+      - "There's a three-letter git verb that adds files to the staging area."
+      - "Run `git add notes.md roster.txt` (or `git add .`)."
+
+  - id: made_commit
+    label: "Make your first commit"
+    lesson:
+      command: "git commit"
+      summary: "Saves a snapshot of everything in the staging area as a new commit. A commit is a labelled point in history you can return to. Always pass a message - it's how Future You remembers what Past You was thinking."
+      syntax: "git commit -m \"<message>\""
+      examples:
+        - input: "git commit -m \"Initial roster\""
+          output: |
+            [main (root-commit) 8a3f2c1] Initial roster
+             2 files changed, 6 insertions(+)
+             create mode 100644 notes.md
+             create mode 100644 roster.txt
+          note: "`-m` lets you type the message inline - without it git opens an editor."
+        - input: "git commit -am \"Quick fix\""
+          note: "`-a` auto-stages already-tracked files that have been modified. Untracked files still need `git add` first."
+    hints:
+      - "Now lock that staged work in as a snapshot - with a message describing what you did."
+      - "Use `git commit` with the `-m` flag for an inline message."
+      - "Run `git commit -m \"Initial roster\"` (any message is fine)."
+
+  - id: viewed_log
+    label: "Look at your shiny new history with git log"
+    lesson:
+      command: "git log"
+      summary: "Lists commits, newest first. By default it's verbose; the flags below give the one-line view you'll use 90% of the time."
+      syntax: "git log [--oneline] [--graph] [--decorate] [-n <count>]"
+      examples:
+        - input: "git log"
+          output: |
+            commit 8a3f2c1d... (HEAD -> main)
+            Author: Daymari <daymari@cosmos.corp>
+            Date:   ...
+
+                Initial roster
+          note: "Press `q` to leave the pager."
+        - input: "git log --oneline"
+          output: |
+            8a3f2c1 (HEAD -> main) Initial roster
+          note: "Compact view - one line per commit. Often all you need."
+    hints:
+      - "Confirm the commit landed by looking at the history."
+      - "There's a command that *logs* commits."
+      - "Run `git log` (or `git log --oneline` for a compact view)."

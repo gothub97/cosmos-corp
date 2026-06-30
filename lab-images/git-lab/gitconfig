@@ -1,0 +1,20 @@
+# Pre-seeded git globals for the player. Mission 01 of Chapter 2 assumes these
+# are already in place so beginners aren't asked to configure git before they
+# even know what git is.
+[user]
+    name = Daymari
+    email = daymari@cosmos.corp
+[init]
+    defaultBranch = main
+[pull]
+    rebase = false
+[color]
+    ui = auto
+[core]
+    pager = less -FRX
+[advice]
+    detachedHead = false
+    addIgnoredFile = false
+    statusHints = true
+[push]
+    default = simple

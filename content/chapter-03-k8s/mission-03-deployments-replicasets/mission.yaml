@@ -1,0 +1,77 @@
+id: ch03.m03.deployments-replicasets
+title: "Deployments - durable workloads"
+chapter: 3
+order: 3
+container_image: cosmos/k8s-lab:latest
+intro_dialogue: dialogue.md
+outro_dialogue: outro.md
+setup: setup.sh
+check: check.sh
+summary: "Create a Deployment, watch the ReplicaSet + Pods spawn, scale to 3."
+
+cluster_view:
+  watch_namespace: default
+  watch_kinds: [deployment, replicaset, pod]
+  poll_interval_ms: 2000
+
+objectives:
+  - id: created_deployment
+    label: "Create a Deployment named `web` running nginx"
+    lesson:
+      command: "kubectl create deployment"
+      summary: "A Deployment is a controller that says *I want N pods of this kind running, always*. Under the hood it creates a ReplicaSet, which creates the Pods. If a pod dies, the ReplicaSet brings a fresh one up. If you change the image, the Deployment rolls out a new ReplicaSet and drains the old one."
+      syntax: "kubectl create deployment <name> --image=<image> [--replicas=N] [-- <command>]"
+      examples:
+        - input: "kubectl create deployment web --image=nginx:alpine"
+          output: |
+            deployment.apps/web created
+          note: "Default replicas=1. The Deployment, ReplicaSet, and Pod will all light up in the cluster view - owner edges link them."
+        - input: "kubectl create deployment web --image=nginx:alpine --replicas=3"
+          note: "Skip the `kubectl scale` step by setting replicas at create time."
+    hints:
+      - "There's a kubectl verb for creating things from CLI args (no YAML required)."
+      - "It's `kubectl create <kind>` - and the kind here is the controller, not the pod."
+      - "Run `kubectl create deployment web --image=nginx:alpine`."
+
+  - id: listed_deploy_rs
+    label: "List Deployments and ReplicaSets to see the chain"
+    lesson:
+      command: "kubectl get"
+      summary: "`kubectl get` accepts comma-separated kinds, so you can pull related resources in one shot. `kubectl get deploy,rs,pods` is the magic phrase for *show me the whole chain*. Short names: `deploy` for Deployment, `rs` for ReplicaSet, `po` for Pod, `svc` for Service."
+      syntax: "kubectl get <kind1>,<kind2>,... [-l <selector>]"
+      examples:
+        - input: "kubectl get deploy,rs,pods"
+          output: |
+            NAME                  READY   UP-TO-DATE   AVAILABLE
+            deployment.apps/web   1/1     1            1
+
+            NAME                            DESIRED   CURRENT   READY
+            replicaset.apps/web-5d8b7c8c4   1         1         1
+
+            NAME                        READY   STATUS    RESTARTS
+            pod/web-5d8b7c8c4-xz2kp     1/1     Running   0
+          note: "Notice the names: the RS hash is part of the pod's name. That's the ownership chain you see in the cluster view."
+        - input: "kubectl get deploy"
+          note: "Just deployments - `deploy` is the universally-understood short alias."
+    hints:
+      - "Pull deployments and replicasets in one command - `kubectl get` accepts comma-separated kinds."
+      - "Short aliases work: `deploy`, `rs`."
+      - "Try `kubectl get deploy,rs` (or include `pods` to see the full chain)."
+
+  - id: scaled_to_3
+    label: "Scale the `web` Deployment to 3 replicas"
+    lesson:
+      command: "kubectl scale"
+      summary: "Tells a Deployment (or StatefulSet, or ReplicaSet) to run a different number of replicas. The controller will spawn or drain pods to match. Pure CLI version of editing `spec.replicas` in the YAML."
+      syntax: "kubectl scale <kind>/<name> --replicas=N"
+      examples:
+        - input: "kubectl scale deploy/web --replicas=3"
+          output: |
+            deployment.apps/web scaled
+          note: "Watch two new pod nodes appear in the cluster view within a couple of seconds."
+        - input: "kubectl scale deploy/web --replicas=0"
+          note: "Replicas can be 0 - useful for parking a workload without deleting it."
+    hints:
+      - "There's a kubectl verb that's literally what you want to do."
+      - "It takes `--replicas=N`."
+      - "Run `kubectl scale deploy/web --replicas=3`."

@@ -1,0 +1,52 @@
+id: ch02.m04.merge-fast-forward
+title: "Merging: glue the work back"
+chapter: 2
+order: 4
+container_image: cosmos/git-lab:latest
+intro_dialogue: dialogue.md
+outro_dialogue: outro.md
+setup: setup.sh
+check: check.sh
+summary: "git merge - fast-forward and three-way merges."
+
+objectives:
+  - id: did_ff_merge
+    label: "Fast-forward merge topic/banner into main"
+    lesson:
+      command: "git merge"
+      summary: "Brings the commits from another branch into the one you're on. If the current branch has no commits the other doesn't, git just *moves the label forward* (a fast-forward). If both have new commits, git creates a brand-new merge commit that has two parents."
+      syntax: "git merge [--no-edit] [--no-ff] <branch>"
+      examples:
+        - input: "git switch main && git merge topic/banner"
+          output: |
+            Updating 36b9c2a..a1f8e7d
+            Fast-forward
+             banner.txt | 3 +++
+             1 file changed, 3 insertions(+)
+          note: "*Fast-forward* - main had no new commits of its own, so git just moves it to the tip of `topic/banner`."
+        - input: "git merge --no-edit topic/footer"
+          output: |
+            Merge made by the 'ort' strategy.
+             footer.txt | 2 ++
+             1 file changed, 2 insertions(+)
+          note: "Three-way merge: both branches had new commits. `--no-edit` accepts the default merge message so git doesn't open the editor."
+        - input: "git merge --abort"
+          note: "Bail out of a merge that's hit a conflict. We'll see this in mission 06."
+    hints:
+      - "First switch onto `main` (the branch you want to receive the work)."
+      - "Then `git merge` the source branch by name."
+      - "Run `git switch main && git merge topic/banner`."
+
+  - id: did_three_way_merge
+    label: "Merge topic/footer into main (this one needs a real merge commit)"
+    hints:
+      - "main has moved on since `topic/footer` branched off, so this won't be a fast-forward."
+      - "You'll need a merge commit. Pass `--no-edit` to skip the editor and accept the default message."
+      - "Run `git merge --no-edit topic/footer`."
+
+  - id: history_is_correct
+    label: "Confirm both branches are now merged into main"
+    hints:
+      - "After the two merges, main should contain `banner.txt` AND `footer.txt`."
+      - "`git log --oneline --graph --all` is a fantastic way to *see* the shape of the history."
+      - "Try `git log --oneline --graph --all -10` - you should see a fork-and-rejoin shape."

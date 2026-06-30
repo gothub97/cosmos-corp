@@ -1,0 +1,118 @@
+id: ch02.m05.remotes-and-clone
+title: "Remotes: sharing the repo"
+chapter: 2
+order: 5
+container_image: cosmos/git-lab:latest
+intro_dialogue: dialogue.md
+outro_dialogue: outro.md
+setup: setup.sh
+check: check.sh
+summary: "git clone, remote, push, fetch, pull - get the repo onto your laptop and back."
+
+objectives:
+  - id: cloned_repo
+    label: "Clone the Cosmos handbook into ~/work/cosmos"
+    lesson:
+      command: "git clone"
+      summary: "Copies a remote repository onto your laptop. The destination becomes a normal git repo with the source registered as `origin` so you can push/pull from it later. URLs can be HTTPS, SSH, or - like in this lab - `file://` paths."
+      syntax: "git clone <url> [<dir>]"
+      examples:
+        - input: "git clone file:///srv/repos/cosmos.git ~/work/cosmos"
+          output: |
+            Cloning into '/home/dev/work/cosmos'...
+            done.
+          note: "Lab URL - `/srv/repos/cosmos.git` is a bare repo we shipped inside the container."
+        - input: "git clone git@github.com:cosmos-corp/handbook.git"
+          note: "Real SSH URL. Default destination = repo name (`handbook`)."
+        - input: "git clone --depth 1 <url>"
+          note: "Shallow clone - only the latest commit. Faster for huge repos when you don't need history."
+    hints:
+      - "You don't have the repo locally yet. Pull a copy from `/srv/repos/cosmos.git`."
+      - "`git clone <source> <destination>`."
+      - "Run `git clone file:///srv/repos/cosmos.git ~/work/cosmos`."
+
+  - id: listed_remotes
+    label: "Show the remotes configured for this clone"
+    lesson:
+      command: "git remote"
+      summary: "Manages the *remotes* - named pointers to other repositories you push/pull from. By far the most common one is `origin` (created automatically by `git clone`). The `-v` flag shows the URLs."
+      syntax: "git remote [-v] [add|remove|rename] [...]"
+      examples:
+        - input: "git remote -v"
+          output: |
+            origin  file:///srv/repos/cosmos.git (fetch)
+            origin  file:///srv/repos/cosmos.git (push)
+          note: "Two lines per remote - one for fetching, one for pushing. Usually identical."
+        - input: "git remote add upstream git@github.com:cosmos/handbook.git"
+          note: "Add a second remote (e.g., the canonical repo when you've forked it). Convention: call it `upstream`."
+    hints:
+      - "Move into your fresh clone first (`cd ~/work/cosmos`)."
+      - "There's a `git remote` flag that's verbose."
+      - "Run `git remote -v`."
+
+  - id: fetched
+    label: "Run git fetch to refresh remote-tracking branches"
+    lesson:
+      command: "git fetch"
+      summary: "Downloads the latest commits from `origin` and updates the *remote-tracking* branches (like `origin/main`) - without touching your local branches. It's the safe, no-side-effects version of `git pull`: 'show me what changed, but don't merge anything yet.'"
+      syntax: "git fetch [<remote>]"
+      examples:
+        - input: "git fetch"
+          output: |
+            From file:///srv/repos/cosmos
+             * branch            main       -> FETCH_HEAD
+          note: "First time you run it after a clone, you'll usually see no changes - your `origin/main` already matches."
+        - input: "git fetch --all --prune"
+          note: "`--all` fetches from every remote; `--prune` deletes remote-tracking branches whose remote counterpart was deleted."
+    hints:
+      - "Fetch doesn't change your working tree - it just updates what git knows about the remote."
+      - "Run it without arguments to fetch from `origin`."
+      - "Run `git fetch`."
+
+  - id: committed_locally
+    label: "Add your name to crew.txt and commit it locally"
+    hints:
+      - "Append a line to crew.txt and commit it on `main`."
+      - "Try `printf 'Daymari      - IC (you)\\n' >> crew.txt && git add crew.txt && git commit -m \"Add Daymari to crew\"`."
+      - "Then `git status` should say 'Your branch is ahead of origin/main by 1 commit'."
+
+  - id: pushed_to_origin
+    label: "Push your commit to origin"
+    lesson:
+      command: "git push"
+      summary: "Sends your local commits to a remote so other people (and future you, on another laptop) can see them. By default it pushes the *current* branch to its tracked counterpart on `origin`."
+      syntax: "git push [<remote> [<branch>]] [-u]"
+      examples:
+        - input: "git push"
+          output: |
+            Enumerating objects: 5, done.
+            ...
+            To file:///srv/repos/cosmos
+               de790d6..a3f1b22  main -> main
+          note: "Plain push - sends the current branch."
+        - input: "git push -u origin feature/intake-form"
+          note: "`-u` (a.k.a. `--set-upstream`) wires the local branch to its remote counterpart, so future pushes/pulls don't need extra arguments."
+        - input: "git push origin :feature/old"
+          note: "Empty source = delete the remote branch. Niche but useful."
+    hints:
+      - "Send the commit you just made up to origin so the bare repo knows about it."
+      - "Plain `git push` works because origin/main is already tracked."
+      - "Run `git push`."
+
+  - id: pulled
+    label: "Run git pull to confirm everything's in sync"
+    lesson:
+      command: "git pull"
+      summary: "Shorthand for `git fetch` + `git merge` (or `+ rebase`, depending on config). Brings down new commits from the remote AND combines them with your local branch in one step. Use carefully on shared branches - `fetch` first if you want to peek before merging."
+      syntax: "git pull [<remote> [<branch>]]"
+      examples:
+        - input: "git pull"
+          output: |
+            Already up to date.
+          note: "The good case - no new remote commits."
+        - input: "git pull --rebase"
+          note: "Replays your local commits on top of the remote's instead of creating a merge commit. Great for keeping history linear; the team default we set is plain merge."
+    hints:
+      - "Pull mostly says 'already up to date' here - that's fine. The point is to see the command in action."
+      - "Just `git pull` with no arguments."
+      - "Run `git pull`."

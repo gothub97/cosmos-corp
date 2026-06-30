@@ -1,0 +1,68 @@
+id: ch04.m04.the-loop
+title: "Close the loop"
+chapter: 4
+order: 4
+container_image: cosmos/flux-lab:latest
+intro_dialogue: dialogue.md
+outro_dialogue: outro.md
+setup: setup.sh
+check: check.sh
+summary: "The whole point of GitOps: edit a manifest, commit, push, reconcile - and watch the live cluster reshape itself to match the new commit."
+
+cluster_view:
+  watch_namespace: default
+  watch_kinds: [gitrepository, kustomization, deployment, replicaset, pod]
+  poll_interval_ms: 2000
+
+objectives:
+  - id: edited_and_pushed
+    label: "Edit the manifest to replicas: 3, commit, and push"
+    lesson:
+      command: "git push"
+      summary: "This is the GitOps gesture: you change the cluster by changing git. Edit `deploy/cosmos-web.yaml` in your working clone (bump `replicas: 2` to `replicas: 3`), commit it, and push. Pushing publishes the new commit to the repo Flux is watching. You have NOT touched the cluster directly - you've only changed the source of truth. Flux does the rest."
+      syntax: "nano <file>  →  git -C <repo> commit -am \"msg\"  →  git -C <repo> push"
+      examples:
+        - input: "nano ~/work/cosmos-deploy/deploy/cosmos-web.yaml"
+          note: "Find the `replicas: 2` line, change the 2 to a 3, save (Ctrl-O, Enter) and exit (Ctrl-X)."
+        - input: "git -C ~/work/cosmos-deploy commit -am \"scale cosmos-web to 3\""
+          output: |
+            [main 9f3c1a2] scale cosmos-web to 3
+             1 file changed, 1 insertion(+), 1 deletion(-)
+          note: "`-am` stages all tracked changes and commits in one shot."
+        - input: "git -C ~/work/cosmos-deploy push"
+          output: |
+            To /srv/repos/cosmos-deploy.git
+               1a2b3c4..9f3c1a2  main -> main
+          note: "The push goes to the bare repo on disk - no network, no auth. Flux's source-controller will pick the new commit up."
+    hints:
+      - "Don't `kubectl scale`. Change the cluster the GitOps way: edit the manifest in git."
+      - "Open `~/work/cosmos-deploy/deploy/cosmos-web.yaml`, change `replicas: 2` to `replicas: 3`, save."
+      - "Then commit and push: `git -C ~/work/cosmos-deploy commit -am \"scale cosmos-web to 3\"` and `git -C ~/work/cosmos-deploy push`."
+
+  - id: reconciled
+    label: "Reconcile so Flux pulls the new commit and re-applies"
+    lesson:
+      command: "flux reconcile kustomization"
+      summary: "Flux would pick up your push on its own within a minute - but you don't have to wait. `flux reconcile kustomization <name> --with-source` forces it now: `--with-source` first re-fetches the GitRepository (so the new commit is in-cluster), then re-applies the Kustomization. After it runs, the live Deployment's desired replicas matches what you just pushed."
+      syntax: "flux reconcile kustomization <name> --with-source -n <ns>"
+      examples:
+        - input: "flux reconcile kustomization cosmos-web --with-source -n default"
+          output: |
+            ► annotating GitRepository cosmos-deploy in default namespace
+            ✔ fetched revision main@sha1:9f3c1a2
+            ► annotating Kustomization cosmos-web in default namespace
+            ✔ applied revision main@sha1:9f3c1a2
+          note: "`--with-source` is the key flag - without it Flux re-applies the *old* fetched revision and nothing changes."
+        - input: "flux reconcile kustomization cosmos-web -n default"
+          note: "Without `--with-source` it only re-applies the last-fetched commit. Use the `--with-source` form right after a push."
+    hints:
+      - "Force Flux to act now instead of waiting up to a minute for the interval."
+      - "You need to re-fetch the source AND re-apply - there's a flag for that."
+      - "Run `flux reconcile kustomization cosmos-web --with-source -n default`."
+
+  - id: scaled_pods_ready
+    label: "Confirm the cluster followed git - three pods running"
+    hints:
+      - "The repo now says 3, Flux applied it - confirm the live cluster actually has three ready pods."
+      - "Check the Deployment's available replicas, or just count the pods."
+      - "Run `kubectl get deploy cosmos-web -n default` - READY should read 3/3."

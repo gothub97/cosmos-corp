@@ -1,0 +1,77 @@
+id: ch03.m05.configmaps-secrets
+title: "ConfigMaps & Secrets - configuration that isn't code"
+chapter: 3
+order: 5
+container_image: cosmos/k8s-lab:latest
+intro_dialogue: dialogue.md
+outro_dialogue: outro.md
+setup: setup.sh
+check: check.sh
+summary: "Create a ConfigMap, create a Secret, mount the ConfigMap into a Pod."
+
+cluster_view:
+  watch_namespace: default
+  watch_kinds: [pod, configmap, secret, deployment]
+  poll_interval_ms: 2000
+
+objectives:
+  - id: created_configmap
+    label: "Create a ConfigMap named `cosmos-config`"
+    lesson:
+      command: "kubectl create configmap"
+      summary: "A ConfigMap stores non-secret key/value data - environment variables, config-file snippets, feature flags. Pods consume them either as env vars (`envFrom` / `env.valueFrom.configMapKeyRef`) or as mounted files (`volumes.configMap`). Same data, two shapes."
+      syntax: "kubectl create configmap <name> --from-literal=K=V [--from-literal=K2=V2 ...] [--from-file=path]"
+      examples:
+        - input: "kubectl create configmap cosmos-config --from-literal=GREETING=hello --from-literal=REGION=sol-3"
+          output: |
+            configmap/cosmos-config created
+          note: "`--from-literal` for inline keys, `--from-file=path/to/file` for whole files."
+        - input: "kubectl create configmap cosmos-config --from-file=config.yaml"
+          note: "If `config.yaml` is a file, the ConfigMap key is the file name and the value is the file's contents."
+    hints:
+      - "There's a kubectl verb for creating things from CLI args."
+      - "The kind here is `configmap` and you pass `--from-literal=K=V`."
+      - "Try `kubectl create configmap cosmos-config --from-literal=GREETING=hello --from-literal=REGION=sol-3`."
+
+  - id: created_secret
+    label: "Create a Secret named `cosmos-secret`"
+    lesson:
+      command: "kubectl create secret"
+      summary: "Secrets are like ConfigMaps but for sensitive data - passwords, tokens, certs. The values are stored base64-encoded (NOT encrypted by default; that's a separate flag on the apiserver). Use `kubectl create secret generic` for arbitrary key/value pairs; `tls` and `docker-registry` are specialised forms."
+      syntax: "kubectl create secret generic <name> --from-literal=K=V [--from-literal=K2=V2 ...]"
+      examples:
+        - input: "kubectl create secret generic cosmos-secret --from-literal=API_TOKEN=hunter2"
+          output: |
+            secret/cosmos-secret created
+          note: "`generic` is the form for arbitrary kv pairs; `tls` and `docker-registry` are the other built-ins."
+        - input: "kubectl get secret cosmos-secret -o jsonpath='{.data.API_TOKEN}' | base64 -d"
+          note: "Inspect a value: pull the base64 blob from `.data.<key>` and decode it."
+    hints:
+      - "Same shape as ConfigMap - but the kind has a different name."
+      - "It's `kubectl create secret generic <name> --from-literal=...`."
+      - "Run `kubectl create secret generic cosmos-secret --from-literal=API_TOKEN=hunter2`."
+
+  - id: mounted_in_pod
+    label: "Run a pod that reads `cosmos-config` as environment variables"
+    lesson:
+      command: "kubectl run"
+      summary: "`kubectl run` accepts JSON-shaped overrides via `--overrides` - that's how you wire `envFrom` (or volumes, or anything else not in the basic flag set) without writing a manifest file. Useful for one-off pods; for production, use a real YAML."
+      syntax: "kubectl run <name> --image=<image> --overrides='<json>'"
+      examples:
+        - input: |
+            kubectl run cosmos-app --image=nginx:alpine --overrides='{
+              "spec": {
+                "containers": [{
+                  "name": "cosmos-app",
+                  "image": "nginx:alpine",
+                  "envFrom": [{ "configMapRef": { "name": "cosmos-config" } }]
+                }]
+              }
+            }'
+          note: "Every key in `cosmos-config` becomes an env var inside the container. Test it: `kubectl exec cosmos-app -- env | grep GREETING`."
+        - input: "kubectl exec cosmos-app -- env | sort"
+          note: "After the pod starts, exec in and see your config keys mixed in with the standard PATH/HOME stuff."
+    hints:
+      - "You need a pod whose spec has `envFrom: [{ configMapRef: { name: cosmos-config } }]`."
+      - "Use `kubectl run` with `--overrides='...'` to drop the spec inline (or apply a YAML file from `~/manifests/app-config.yaml` - see `cat ~/manifests/app-config.yaml`)."
+      - 'Run `kubectl run cosmos-app --image=nginx:alpine --overrides=''{"spec":{"containers":[{"name":"cosmos-app","image":"nginx:alpine","envFrom":[{"configMapRef":{"name":"cosmos-config"}}]}]}}''` (one line, JSON quoted).'

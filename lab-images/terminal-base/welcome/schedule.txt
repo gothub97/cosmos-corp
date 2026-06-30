@@ -1,0 +1,10 @@
+Cosmos Corp - Onboarding Week
+==============================
+
+Mon  Terminal warm-up + welcome lunch
+Tue  File system tour (you are here)
+Wed  Reading & editing files
+Thu  Pipes, redirection, your first one-liner
+Fri  Search the codebase, then a short hike
+
+Reminder from Sage: nothing here is graded. Just play.

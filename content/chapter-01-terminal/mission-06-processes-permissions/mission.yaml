@@ -1,0 +1,65 @@
+id: ch01.m06.processes-permissions
+title: "Processes & permissions"
+chapter: 1
+order: 6
+container_image: cosmos/terminal-base:latest
+intro_dialogue: dialogue.md
+outro_dialogue: outro.md
+setup: setup.sh
+check: check.sh
+summary: "See what's running, stop it, fix file permissions - ps, kill, chmod."
+
+objectives:
+  - id: listed_processes
+    label: "List the processes running in this shell session"
+    lesson:
+      command: "ps"
+      summary: "Snapshots the running processes. Plain `ps` shows just yours; `ps aux` (BSD-style) and `ps -ef` (POSIX-style) both show every process on the system with useful columns."
+      syntax: "ps [OPTIONS]"
+      examples:
+        - input: "ps"
+          note: "Just your shell-session processes. Quick sanity check."
+        - input: "ps -ef"
+          note: "Every process on the host, with parent PIDs."
+        - input: "ps aux | grep bash"
+          note: "Pipe into grep to find processes matching a name."
+    hints:
+      - "Get a snapshot of what processes belong to you right now."
+      - "There's a two-letter command for *process status*."
+      - "Try `ps` - or `ps -ef` for everything, or `ps aux` for the friendly form."
+
+  - id: killed_sleeper
+    label: "Stop the runaway `sleep` process Sage left behind"
+    lesson:
+      command: "kill"
+      summary: "Sends a signal to a process - by default SIGTERM, asking it to exit cleanly. `kill -9` (SIGKILL) forces termination. `pkill <name>` finds-by-name without you having to look up the PID first."
+      syntax: "kill [-SIGNAL] PID  |  pkill [-SIGNAL] NAME"
+      examples:
+        - input: "kill 4231"
+          note: "Politely ask process 4231 to exit (SIGTERM)."
+        - input: "kill -9 4231"
+          note: "Force-kill (SIGKILL). Use only when SIGTERM didn't work."
+        - input: "pkill sleep"
+          note: "Kill every process whose name matches `sleep`. Easier than looking up PIDs."
+    hints:
+      - "There's a `sleep` process running in the background. Find its PID and end it."
+      - "`ps -ef | grep sleep` shows the PID. Then `kill <PID>` (or `pkill sleep`)."
+      - "Try `pkill sleep` for the easy mode."
+
+  - id: made_executable
+    label: "Make ~/work/deploy.sh executable"
+    lesson:
+      command: "chmod"
+      summary: "Changes file permissions. The friendly form is `chmod +x file` (add execute bit) or `chmod -x file` (remove it). The numeric form `chmod 755 file` is a 3-digit code: owner / group / others, where 4=read, 2=write, 1=execute summed together."
+      syntax: "chmod [+|-]MODE FILE  |  chmod NNN FILE"
+      examples:
+        - input: "chmod +x deploy.sh"
+          note: "Add the execute bit so the file can be run as a program."
+        - input: "chmod 644 README.md"
+          note: "Owner: read+write (6). Group/others: read only (4)."
+        - input: "chmod 755 deploy.sh"
+          note: "Owner: rwx (7). Group/others: rx (5). Standard for executables."
+    hints:
+      - "The file exists but the owner can't run it yet. Add the *execute* bit."
+      - "`chmod +x <file>` adds execute permission for everyone who already has read access."
+      - "Try `chmod +x ~/work/deploy.sh`."

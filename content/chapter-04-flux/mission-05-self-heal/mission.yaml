@@ -1,0 +1,41 @@
+id: ch04.m05.self-heal
+title: "Git wins"
+chapter: 4
+order: 5
+container_image: cosmos/flux-lab:latest
+intro_dialogue: dialogue.md
+outro_dialogue: outro.md
+setup: setup.sh
+check: check.sh
+summary: "Drift the cluster by hand - scale the live Deployment down - and watch Flux reconcile it straight back to what git declares."
+
+cluster_view:
+  watch_namespace: default
+  watch_kinds: [gitrepository, kustomization, deployment, replicaset, pod]
+  poll_interval_ms: 2000
+
+objectives:
+  - id: scaled_down
+    label: "Scale the live Deployment down to 1 by hand"
+    lesson:
+      command: "kubectl scale"
+      summary: "Here you deliberately do the WRONG thing: change the cluster directly, behind git's back. `kubectl scale deploy/cosmos-web --replicas=1` drops the live app to a single pod. Git still says 3. You've created *drift* - a gap between the source of truth and reality. The whole mission is about what Flux does next."
+      syntax: "kubectl scale deploy/<name> --replicas=N -n <ns>"
+      examples:
+        - input: "kubectl -n default scale deploy/cosmos-web --replicas=1"
+          output: |
+            deployment.apps/cosmos-web scaled
+          note: "Two pods start terminating in the cluster view. This is the imperative change a tired engineer makes at 2am - and exactly what GitOps is designed to undo."
+        - input: "kubectl -n default get deploy cosmos-web"
+          note: "Confirm the drift: READY drops toward 1/1. Git still declares 3 - they disagree now."
+    hints:
+      - "Play the villain: change the cluster directly instead of through git. Scale the Deployment to one pod."
+      - "It's the same `kubectl scale` from Chapter 3, aimed at `deploy/cosmos-web`."
+      - "Run `kubectl -n default scale deploy/cosmos-web --replicas=1`."
+
+  - id: reconciled_back
+    label: "Watch Flux heal the drift back to 3"
+    hints:
+      - "Git says 3, the cluster says 1 - they disagree, and Flux exists to settle that disagreement in git's favour."
+      - "Flux will fix it on its own within the interval (1m). Don't want to wait? Force it: `flux reconcile kustomization cosmos-web -n default`."
+      - "Either way, watch the pods climb back to three: `kubectl -n default get deploy cosmos-web` returns to 3/3."

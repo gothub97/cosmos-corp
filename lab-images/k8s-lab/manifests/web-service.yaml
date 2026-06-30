@@ -1,0 +1,19 @@
+# Reference Service mirroring web-deployment.yaml - selects the same pods on
+# label `app: web-sample` and exposes them on a ClusterIP. Pure read-along
+# example for missions that walk through `kubectl expose`.
+apiVersion: v1
+kind: Service
+metadata:
+  name: web-sample
+  labels:
+    app: web-sample
+    mission: example
+spec:
+  type: ClusterIP
+  selector:
+    app: web-sample
+  ports:
+    - name: http
+      port: 80
+      targetPort: 80
+      protocol: TCP

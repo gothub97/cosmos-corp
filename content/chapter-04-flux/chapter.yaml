@@ -1,0 +1,21 @@
+id: ch04
+title: "The GitOps Loop"
+order: 4
+summary: |
+  Week four - the capstone. Everything you've learned so far fuses here: the
+  terminal, git, and Kubernetes become one loop. You stop running `kubectl
+  apply` by hand and instead let FluxCD watch a git repo and drive the cluster
+  to match it. Edit a manifest, commit, push - and watch the cluster reshape
+  itself to obey. Then break it by hand and watch Flux quietly put it back.
+intro: |
+  Sage pulls a third coffee out of nowhere: *"This is the one that ties it all
+  together. Up to now you've been telling the cluster what to do - `kubectl
+  run`, `kubectl scale`, `kubectl apply`. That works, but it's you, by hand,
+  with no record of why. GitOps flips it: git becomes the single source of
+  truth, and a controller called Flux lives inside the cluster making reality
+  match the repo. You change the cluster by changing git."*
+
+  *"You'll stand up Flux, point it at a repo, deploy an app straight from a
+  commit, then - my favourite part - push a change and watch the cluster
+  follow within seconds. Finally you'll sabotage it by hand and watch Flux
+  heal it right back. Terminal, git, kubernetes - one loop. Let's close it."*

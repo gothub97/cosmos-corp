@@ -1,0 +1,4 @@
+Name:   Doc Lina
+Role:   Incident commander on rotation
+Pings:  P1/P2 incidents.
+Tone:   Direct. Will cut through speculation faster than you can say "race condition".

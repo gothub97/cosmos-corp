@@ -1,0 +1,4 @@
+Name:   Captain Vex
+Role:   VP Engineering
+Pings:  Quarterly all-hands. Otherwise: rarely.
+Tone:   Big-picture. Will ask "what's the customer impact?" three times.

@@ -1,0 +1,65 @@
+id: ch02.m03.branches
+title: "Branches: a place to try things"
+chapter: 2
+order: 3
+container_image: cosmos/git-lab:latest
+intro_dialogue: dialogue.md
+outro_dialogue: outro.md
+setup: setup.sh
+check: check.sh
+summary: "git branch, git switch - work without fear of breaking main."
+
+objectives:
+  - id: listed_branches
+    label: "List the branches in the repo"
+    lesson:
+      command: "git branch"
+      summary: "On its own, prints every local branch and marks the one you're on with a `*`. With a name, creates a new branch *without* switching to it. The `-a` flag also shows remote branches; `-d` deletes a merged branch."
+      syntax: "git branch [-a] [-d <name>] [<new-branch>]"
+      examples:
+        - input: "git branch"
+          output: |
+            * main
+          note: "Just one branch so far - `main`. The `*` shows where you are."
+        - input: "git branch experiment"
+          note: "Creates `experiment` pointing at the current commit, but does NOT switch to it. Use `git switch -c` if you want both at once."
+        - input: "git branch -d experiment"
+          note: "Deletes `experiment` once it's merged. Use `-D` (capital) to force-delete unmerged work."
+    hints:
+      - "Find out what branches already exist before making a new one."
+      - "There's a one-word git command for it."
+      - "Run `git branch`."
+
+  - id: created_feature_branch
+    label: "Create and switch to a branch named feature/intake-form"
+    lesson:
+      command: "git switch"
+      summary: "Switches you to another branch (or, with `-c`, creates a new one and jumps onto it in one step). Modern replacement for the older, more confusing `git checkout`."
+      syntax: "git switch [-c] <branch>"
+      examples:
+        - input: "git switch -c feature/intake-form"
+          output: |
+            Switched to a new branch 'feature/intake-form'
+          note: "`-c` = *create* a new branch and switch to it. Most common form."
+        - input: "git switch main"
+          note: "Jump to an existing branch."
+        - input: "git switch -"
+          note: "Like `cd -` for branches: jump back to the previous one."
+    hints:
+      - "You want a branch *and* you want to be on it."
+      - "`git switch` has a flag that creates the branch in the same command."
+      - "Run `git switch -c feature/intake-form`."
+
+  - id: committed_on_branch
+    label: "Add a quick commit on the new branch"
+    hints:
+      - "Branches are pointless if they don't have their own commits. Make a small change and commit it on `feature/intake-form`."
+      - "Easiest: append a line to roster.txt or create a tiny intake.md, then `git add` + `git commit -m`."
+      - "Try `printf 'TODO: intake form\\n' > intake.md && git add intake.md && git commit -m \"Sketch intake form\"`."
+
+  - id: back_on_main
+    label: "Switch back to main"
+    hints:
+      - "Your work on the feature branch is safe - switching away doesn't lose it."
+      - "Use `git switch` with the name of the branch you want to be on."
+      - "Run `git switch main`."

@@ -1,0 +1,85 @@
+id: ch01.m04.pipes-redirection
+title: "Plumbing - pipes & redirection"
+chapter: 1
+order: 4
+container_image: cosmos/terminal-base:latest
+intro_dialogue: dialogue.md
+outro_dialogue: outro.md
+setup: setup.sh
+check: check.sh
+summary: "Glue commands together - `|`, `>`, `>>`."
+
+objectives:
+  - id: counted_orders
+    label: "Count rows in ~/work/orders.csv and save the number to ~/work/orders-count.txt"
+    lesson:
+      command: "wc"
+      summary: "Counts lines, words, and bytes in a file (or in whatever is piped into it). `-l` is the one you'll reach for most: count lines."
+      syntax: "wc [-l] [-w] [-c] [FILE]"
+      examples:
+        - input: "wc -l orders.csv"
+          output: "13 orders.csv"
+          note: "13 lines (header + 12 data rows)."
+        - input: "wc -l < orders.csv"
+          output: "13"
+          note: "`< file` redirects the file as input. Without the filename, `wc` prints just the number."
+        - input: "wc -l < orders.csv > count.txt"
+          note: "Combine input redirect (`<`) and output redirect (`>`) to save the count to a file."
+    hints:
+      - "We want a file with just one number in it: the row count of `orders.csv`."
+      - "`wc -l` counts lines. The `>` operator redirects a command's output into a file."
+      - "Try `wc -l < ~/work/orders.csv > ~/work/orders-count.txt` (or `wc -l ~/work/orders.csv | awk '{print $1}' > ~/work/orders-count.txt`)."
+
+  - id: appended_log
+    label: "Append the line `deploy ok` to ~/work/app.log"
+    lesson:
+      command: ">>"
+      summary: "*Append* a command's output to a file. The cousin of `>`, but it preserves whatever was already there. Critical when you want to add to a log without clobbering it."
+      syntax: "<command> >> FILE"
+      examples:
+        - input: "echo 'deploy ok' >> app.log"
+          note: "Adds `deploy ok` as a new line at the end of app.log."
+        - input: "echo 'first' > log.txt"
+          note: "`>` would *replace* log.txt's contents - any prior lines would be gone."
+        - input: "echo 'second' >> log.txt"
+          note: "`>>` keeps `first` and adds `second` on a new line."
+    hints:
+      - "You want to *add* a line to the existing `app.log`, not replace it."
+      - "`>` overwrites. `>>` appends. `echo` is your one-line text producer."
+      - "Try `echo 'deploy ok' >> ~/work/app.log`."
+
+  - id: piped_to_grep
+    label: "Use a pipe to find lines in orders.csv that contain 'EU'"
+    lesson:
+      command: "|"
+      summary: "The pipe glues two commands together: the left command's *standard output* becomes the right command's *standard input*. Most shell one-liners are just a chain of these."
+      syntax: "<left> | <right>"
+      examples:
+        - input: "ls | wc -l"
+          note: "Count files in the current directory: ls lists them, wc -l counts the lines."
+        - input: "cat orders.csv | grep EU"
+          note: "Print the file, filter to lines containing EU."
+        - input: "ps -ef | grep bash | head -3"
+          note: "Pipes can chain: list processes, filter to bash, take the first 3."
+    hints:
+      - "Read the file's contents and feed them into `grep` to filter."
+      - "The `|` (pipe) sends the output of the left command into the input of the right command."
+      - "Try `cat ~/work/orders.csv | grep EU`."
+
+  - id: wrote_eu_orders
+    label: "Save those EU lines into ~/work/eu-orders.txt"
+    lesson:
+      command: ">"
+      summary: "Redirects a command's standard output *into a file*, replacing whatever was there. Use `>>` if you want to append instead."
+      syntax: "<command> > FILE"
+      examples:
+        - input: "echo 'hello' > greeting.txt"
+          note: "Creates greeting.txt containing one line: hello."
+        - input: "ls -la > listing.txt"
+          note: "Save a directory listing to a file."
+        - input: "grep EU orders.csv > eu-orders.txt"
+          note: "Redirect grep's output to a file - exactly what this objective wants."
+    hints:
+      - "Same idea as the previous step, but redirect the output to a file."
+      - "Combine `grep EU ~/work/orders.csv` with `>`."
+      - "Try `grep EU ~/work/orders.csv > ~/work/eu-orders.txt`."

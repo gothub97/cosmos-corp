@@ -1,0 +1,72 @@
+id: ch02.m07.rebase
+title: "Tidying messy history with rebase -i"
+chapter: 2
+order: 7
+container_image: cosmos/git-lab:latest
+intro_dialogue: dialogue.md
+outro_dialogue: outro.md
+setup: setup.sh
+check: check.sh
+summary: "git rebase -i - squash three WIP commits into one clean one."
+
+objectives:
+  - id: on_feature_branch
+    label: "Switch to feature/onboarding"
+    lesson:
+      command: "git switch"
+      summary: "Quick refresher: `git switch` jumps between branches. Today's branch is `feature/onboarding` - three messy commits sit on top of main, ready for cleanup."
+      examples:
+        - input: "git switch feature/onboarding"
+          output: |
+            Switched to branch 'feature/onboarding'
+    hints:
+      - "The branch already exists (I made it for you). Just switch to it."
+      - "Run `git switch feature/onboarding`."
+      - "Confirm with `git log --oneline main..` - you should see three commits."
+
+  - id: cleaned_history
+    label: "Squash the three WIP commits into a single tidy commit"
+    lesson:
+      command: "git rebase"
+      summary: "Replays a sequence of commits on top of a different base. Most powerful in *interactive* mode (`-i`), where git opens an editor with one line per commit and you can reorder, edit, drop, or *squash* them. Squashing combines several commits into one - perfect for cleaning up WIP history before sharing."
+      syntax: "git rebase [-i] <upstream>"
+      examples:
+        - input: "git rebase -i HEAD~3"
+          output: |
+            pick aaaaaaa wip
+            pick bbbbbbb more wip
+            pick ccccccc fix typo
+            # Rebase ... 3 commits onto main
+            #
+            # Commands:
+            # p, pick   = use commit
+            # s, squash = use commit, but meld into previous commit
+            # f, fixup  = like squash, but discard this commit's log message
+            # ...
+          note: "Git opens this 'todo' file in your editor. Change `pick` to `squash` (or `s`) for the lines you want melded into the line ABOVE."
+        - input: "# After saving with: pick / squash / squash"
+          output: |
+            [detached HEAD 7c2f1d4] Add onboarding doc
+            Successfully rebased and updated refs/heads/feature/onboarding.
+          note: "Git will then open the editor a *second* time to let you edit the combined commit message. Save it, and you're done."
+        - input: "git rebase --abort"
+          note: "If anything goes sideways, this rolls everything back to before the rebase started. Your safety net."
+    hints:
+      - "Use interactive rebase against the last 3 commits - `git rebase -i HEAD~3`."
+      - "In the nano editor that opens: leave the FIRST line as `pick`, change the next two to `squash` (or `s`). Save with Ctrl-O, Enter, Ctrl-X. A second editor opens for the new commit message - clean it up to something like 'Add onboarding doc' and save again."
+      - "If you get stuck mid-rebase, `git rebase --abort` rewinds. To finish manually: `git rebase --continue` after fixing whatever's pending."
+
+  - id: confirmed_clean
+    label: "Verify feature/onboarding is now exactly 1 commit ahead of main"
+    lesson:
+      command: "git log"
+      summary: "Quick refresher: `git log` is how you check what the history actually looks like after a rebase. Compare with main using the `..` syntax: `git log main..feature/onboarding` lists commits unique to the feature branch."
+      examples:
+        - input: "git log --oneline main..feature/onboarding"
+          output: |
+            7c2f1d4 (HEAD -> feature/onboarding) Add onboarding doc
+          note: "*One* line - the rebase worked. Three commits became one."
+    hints:
+      - "Look at the log restricted to commits on the branch but not on main."
+      - "`git log --oneline main..` (the empty side defaults to your current branch)."
+      - "Run `git log --oneline main..feature/onboarding` - should show exactly one commit."

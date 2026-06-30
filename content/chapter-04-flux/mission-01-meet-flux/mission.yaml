@@ -1,0 +1,77 @@
+id: ch04.m01.meet-flux
+title: "Meet Flux"
+chapter: 4
+order: 1
+container_image: cosmos/flux-lab:latest
+intro_dialogue: dialogue.md
+outro_dialogue: outro.md
+setup: setup.sh
+check: check.sh
+summary: "Recon the Flux controllers already running in the cluster - flux check, the flux-system pods, flux get all."
+
+cluster_view:
+  watch_namespace: flux-system
+  watch_kinds: [deployment, pod]
+  poll_interval_ms: 2000
+
+objectives:
+  - id: ran_flux_check
+    label: "Confirm Flux is installed and healthy"
+    lesson:
+      command: "flux check"
+      summary: "Verifies that the Flux toolkit is installed and its controllers are running and healthy. It's the very first thing you run on any cluster you suspect has Flux - like `kubectl version` was for the cluster itself. `flux check --pre` runs the *pre-install* checks (is this cluster even compatible?) instead."
+      syntax: "flux check [--pre]"
+      examples:
+        - input: "flux check"
+          output: |
+            ► checking prerequisites
+            ✔ Kubernetes 1.31.5+k3s1 >=1.28.0
+            ► checking controllers
+            ✔ source-controller: deployment ready
+            ✔ kustomize-controller: deployment ready
+            ✔ all checks passed
+          note: "Two controllers here - this lab installs only the two Chapter 4 needs. A full Flux install has six."
+        - input: "flux check --pre"
+          note: "Pre-flight only: checks the cluster is compatible *before* you install. Run this before `flux install` on a brand-new cluster."
+    hints:
+      - "Flux is already running in this cluster. Before you trust it, confirm it's healthy."
+      - "The flux subcommand for that is a single word - the same word a doctor uses."
+      - "Run `flux check`."
+
+  - id: listed_flux_system
+    label: "Look at the Flux controllers as ordinary pods"
+    lesson:
+      command: "kubectl get pods -n flux-system"
+      summary: "Flux isn't magic - it's just pods. The controllers run as Deployments in the `flux-system` namespace, exactly like any other workload you met in Chapter 3. Listing them with plain `kubectl` drives that home: `flux check` is the friendly view, `kubectl get pods -n flux-system` is the truth underneath."
+      syntax: "kubectl get pods -n <namespace>"
+      examples:
+        - input: "kubectl get pods -n flux-system"
+          output: |
+            NAME                                   READY   STATUS    RESTARTS   AGE
+            source-controller-7d6c...              1/1     Running   0          3m
+            kustomize-controller-5f9b...           1/1     Running   0          3m
+          note: "Same `kubectl get pods` you ran in Chapter 3 - just pointed at the `flux-system` namespace with `-n`."
+        - input: "kubectl get deploy -n flux-system"
+          note: "The controllers are Deployments - so everything you learned about scaling and rollouts applies to Flux itself."
+    hints:
+      - "The Flux controllers live in their own namespace: `flux-system`. Go look at them with the kubectl you already know."
+      - "It's `kubectl get pods` with a `-n` flag pointing at that namespace."
+      - "Run `kubectl get pods -n flux-system`."
+
+  - id: saw_flux_all
+    label: "Ask Flux for an inventory of everything it manages"
+    lesson:
+      command: "flux get all"
+      summary: "`flux get all` lists every Flux object across all the kinds it knows - sources, kustomizations, helm releases, the lot - with their Ready status and a one-line message. It's your dashboard: the single command that answers *what is Flux managing and is any of it unhappy?* Right now the list is empty - you haven't given it anything to do yet. That changes next mission."
+      syntax: "flux get all [-A] [-n <namespace>]"
+      examples:
+        - input: "flux get all"
+          output: |
+            (no resources yet - nothing has been handed to Flux)
+          note: "Empty for now. After the next two missions this will list your GitRepository source and your Kustomization."
+        - input: "flux get all -A"
+          note: "`-A` spans every namespace - the go-to when you're new to a cluster and want the full picture of what Flux is driving."
+    hints:
+      - "Flux can give you a single-screen inventory of everything it manages."
+      - "It's `flux get` followed by the catch-all keyword."
+      - "Run `flux get all` (add `-A` to span all namespaces)."

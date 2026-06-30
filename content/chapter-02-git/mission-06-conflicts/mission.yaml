@@ -1,0 +1,99 @@
+id: ch02.m06.conflicts
+title: "When two people edit the same line"
+chapter: 2
+order: 6
+container_image: cosmos/git-lab:latest
+intro_dialogue: dialogue.md
+outro_dialogue: outro.md
+setup: setup.sh
+check: check.sh
+summary: "Hit a real merge conflict on push, resolve it, ship it."
+
+objectives:
+  - id: committed_change
+    label: "Commit your edit to manifest.txt locally"
+    lesson:
+      command: "git commit"
+      summary: "Snapshots the staging area as a new commit. Repeat from mission 01 - the same `git add` + `git commit -m` pattern still applies, even on a cloned repo."
+      examples:
+        - input: 'git add manifest.txt && git commit -m "Add Pilot Storm"'
+          output: |
+            [main 7c2f1d4] Add Pilot Storm
+             1 file changed, 1 insertion(+)
+    hints:
+      - "I already edited manifest.txt for you - added a new pilot row. Stage it and commit."
+      - "Two commands: `git add manifest.txt` then `git commit -m \"...\"`."
+      - 'Run `git add manifest.txt && git commit -m "Add Pilot Storm"`.'
+
+  - id: hit_rejection
+    label: "Try to push - and watch git reject it"
+    lesson:
+      command: "git pull"
+      summary: "Pull again - but this time you'll feel why fetch+merge is what `pull` actually does. Someone else (us, in setup.sh) already pushed a different change to the same lines you touched. Git won't let you fast-forward over them; you need to *combine* the histories."
+      examples:
+        - input: "git push"
+          output: |
+            To file:///srv/repos/cosmos-conflicts
+             ! [rejected]        main -> main (fetch first)
+            error: failed to push some refs to 'file:///srv/repos/cosmos-conflicts'
+            hint: Updates were rejected because the remote contains work that you do
+            hint: not have locally. ...
+          note: "The `[rejected]` line is the magic word. It means: someone else's commit lives where you're trying to push. Don't panic."
+        - input: "git pull --no-edit"
+          output: |
+            Auto-merging manifest.txt
+            CONFLICT (content): Merge conflict in manifest.txt
+            Automatic merge failed; fix conflicts and then commit the result.
+          note: "`pull` (= fetch + merge) brings their commit down and tries to merge. When git can't auto-resolve, you get a conflict."
+    hints:
+      - "First push your commit. It will be rejected - that's *expected*."
+      - "Then run `git pull --no-edit` to bring down their commit and start a merge."
+      - 'Run `git push` (watch it fail), then `git pull --no-edit`.'
+
+  - id: resolved_conflict
+    label: "Resolve the conflict and finish the merge"
+    lesson:
+      command: "merge conflicts"
+      summary: "When git can't auto-merge, it pauses mid-merge and writes both versions into the conflicting file, surrounded by markers. Your job: open the file, pick what the merged version should be, delete the markers, then `git add` the file and `git commit` to finish."
+      syntax: "<edit file> ; git add <file> ; git commit"
+      examples:
+        - input: "cat manifest.txt"
+          output: |
+            <<<<<<< HEAD
+            Storm     | Falcon-3 | A
+            =======
+            Captain Q | Falcon-3 | A
+            >>>>>>> origin/main
+          note: "*Anatomy of a conflict.* `<<<<<<< HEAD` to `=======` is your version. `=======` to `>>>>>>> origin/main` is theirs. You delete the markers and decide what the file should actually contain."
+        - input: "git status"
+          output: |
+            On branch main
+            You have unmerged paths.
+              (fix conflicts and run "git commit")
+
+            Unmerged paths:
+              (use "git add <file>..." to mark resolution)
+                    both modified:   manifest.txt
+          note: "`git status` is your friend during a merge - it tells you exactly which files are still conflicted."
+        - input: "git add manifest.txt && git commit --no-edit"
+          note: "Once the file is clean (no markers), `git add` marks it resolved and `git commit --no-edit` finishes the merge using git's default merge message."
+    hints:
+      - "Open `manifest.txt`. You'll see lines starting with `<<<<<<<`, `=======`, and `>>>>>>>`."
+      - "Edit the file so it contains BOTH pilots (Storm and Captain Q) and NO marker lines. Then `git add` + `git commit --no-edit`."
+      - "If editing in nano feels rough, run this one-liner to overwrite manifest.txt with a clean merged version, then commit:\n\n    cat > manifest.txt <<'EOF'\n    # Pilots manifest - one row per pilot.\n    # Format: callsign | ship | rotation\n    Sage      | Falcon-1 | A\n    Vex       | Falcon-2 | A\n    Doc Lina  | Medic-1  | B\n    Captain Q | Falcon-3 | A\n    Storm     | Falcon-4 | A\n    EOF\n    git add manifest.txt && git commit --no-edit"
+
+  - id: pushed_resolution
+    label: "Push the resolved merge"
+    lesson:
+      command: "git push"
+      summary: "Now that the histories are joined, git can fast-forward the remote onto your merged commit. The push that was rejected ten seconds ago will succeed."
+      examples:
+        - input: "git push"
+          output: |
+            To file:///srv/repos/cosmos-conflicts
+               c327e44..d8a1b9c  main -> main
+          note: "If you see this line again - congratulations, you survived your first conflict."
+    hints:
+      - "Send the resolved merge up so the remote is in sync with you."
+      - "Plain `git push`."
+      - "Run `git push`."

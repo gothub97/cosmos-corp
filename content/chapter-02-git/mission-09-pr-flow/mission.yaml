@@ -1,0 +1,99 @@
+id: ch02.m09.pr-flow
+title: "The PR loop, in miniature"
+chapter: 2
+order: 9
+container_image: cosmos/git-lab:latest
+intro_dialogue: dialogue.md
+outro_dialogue: outro.md
+setup: setup.sh
+check: check.sh
+summary: "Branch → commit → push → fetch a review → address → push again."
+
+objectives:
+  - id: created_feature_branch
+    label: "Create a branch named feature/handbook-update"
+    lesson:
+      command: "git switch"
+      summary: "Refresher: feature work goes on its own branch. Today's branch is `feature/handbook-update` - create it from main with `git switch -c`."
+      examples:
+        - input: "git switch -c feature/handbook-update"
+          output: |
+            Switched to a new branch 'feature/handbook-update'
+    hints:
+      - "First `cd ~/work/cosmos`. Then make a new branch off main."
+      - "`git switch -c <name>` creates and switches in one step."
+      - "Run `git switch -c feature/handbook-update`."
+
+  - id: pushed_feature
+    label: "Push the new branch up so the reviewer can see it"
+    lesson:
+      command: "git push -u"
+      summary: "When you push a *brand-new* branch the first time, you have to tell git where it lives on the remote. The `-u` (a.k.a. `--set-upstream`) flag does that and wires the local branch to its remote counterpart so future pushes/pulls are argument-free."
+      syntax: "git push -u <remote> <branch>"
+      examples:
+        - input: "git push -u origin feature/handbook-update"
+          output: |
+            * [new branch]      feature/handbook-update -> feature/handbook-update
+            branch 'feature/handbook-update' set up to track 'origin/feature/handbook-update' from 'origin'.
+          note: "Notice the 'set up to track' line - that's `-u` doing its job. After this, plain `git push` works."
+        - input: "git push"
+          note: "Subsequent pushes on the same branch - no `-u` needed. Git remembers the upstream you set."
+    hints:
+      - "Create `docs/handbook.md` with a small initial body, commit it, then push the branch with the upstream flag."
+      - "First time pushing a brand-new branch: `git push -u origin <branch>`."
+      - |
+        Quick recipe:
+            mkdir -p docs
+            printf '# Cosmos Corp Handbook\n\nWelcome to the handbook.\n' > docs/handbook.md
+            git add docs/handbook.md && git commit -m "Add handbook stub"
+            git push -u origin feature/handbook-update
+
+  - id: fetched_review
+    label: "Run git fetch to pick up the review branch"
+    lesson:
+      command: "git fetch"
+      summary: "Refresher: `git fetch` pulls down what's new on the remote without merging. Today, an automated review bot has pushed a `review-bot/handbook-feedback` branch to origin - `git fetch` will surface it locally as `origin/review-bot/handbook-feedback`."
+      examples:
+        - input: "git fetch"
+          output: |
+            From file:///srv/repos/cosmos
+             * [new branch]      review-bot/handbook-feedback -> origin/review-bot/handbook-feedback
+        - input: "git show origin/review-bot/handbook-feedback:REVIEW.md"
+          note: "Shows a file from a remote branch *without* switching to it - perfect for skimming a review."
+    hints:
+      - "After pushing, see if anyone reviewed your branch."
+      - "`git fetch` gets the latest refs from origin."
+      - "Run `git fetch`, then `git show origin/review-bot/handbook-feedback:REVIEW.md` to read the bot's comments."
+
+  - id: addressed_review
+    label: "Address the bot's comment by adding a ## Conventions section to handbook.md"
+    lesson:
+      command: "git commit"
+      summary: "Refresher: address review feedback the same way you write any other change - edit, `git add`, `git commit`. The new commit goes on top of the previous one on the same branch."
+      examples:
+        - input: 'git add docs/handbook.md && git commit -m "Add Conventions section per review"'
+          output: |
+            [feature/handbook-update 9c2a1e3] Add Conventions section per review
+             1 file changed, 4 insertions(+)
+    hints:
+      - "Append a `## Conventions` heading and at least one bullet to `docs/handbook.md`, then commit."
+      - "Easiest: `printf '\\n## Conventions\\n\\n- Markdown only.\\n' >> docs/handbook.md`."
+      - |
+        Run:
+            printf '\n## Conventions\n\n- Markdown only.\n- Lines under 100 chars.\n' >> docs/handbook.md
+            git add docs/handbook.md && git commit -m "Add Conventions section per review"
+
+  - id: pushed_revision
+    label: "Push the revised branch"
+    lesson:
+      command: "git push"
+      summary: "Refresher: now that the branch already has an upstream (you set it with `-u` earlier), plain `git push` is enough. Each push moves the remote tip to your local tip."
+      examples:
+        - input: "git push"
+          output: |
+            To file:///srv/repos/cosmos
+               9c2a1e3..d8b4f7c  feature/handbook-update -> feature/handbook-update
+    hints:
+      - "Send your follow-up commit up so the bot (and future humans) see the fix."
+      - "Plain `git push` - no flags needed this time."
+      - "Run `git push`."

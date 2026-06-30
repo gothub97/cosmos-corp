@@ -1,0 +1,44 @@
+# Cosmos Corp dev shell - git-lab variant.
+# Same beginner-friendly defaults as terminal-base, plus a couple of git-flavoured aliases.
+
+# Quietly bail if not interactive.
+case $- in
+  *i*) ;;
+    *) return ;;
+esac
+
+# History: append, share across shells, ignore dupes & space-prefixed commands.
+shopt -s histappend
+HISTCONTROL=ignoredups:ignorespace
+HISTSIZE=2000
+HISTFILESIZE=5000
+PROMPT_COMMAND="history -a; ${PROMPT_COMMAND:-:}"
+
+# Sensible default: colourful ls, useful aliases.
+alias ls='ls --color=auto'
+alias ll='ls -lah --color=auto'
+alias la='ls -A --color=auto'
+alias grep='grep --color=auto'
+
+# Tiny git helpers - kept short so the muscle memory transfers. We deliberately
+# do NOT alias `g='git'` because Daymari needs to type `git` enough that it
+# sticks.
+alias gs='git status'
+alias gl='git log --oneline --decorate --graph -20'
+
+# Prompt: cyan user@host, yellow cwd, magenta git branch, green prompt char.
+# Hand-rolled (no fancy git plumbing) so it always renders even outside a repo.
+__cosmos_git_branch() {
+  local b
+  b="$(git symbolic-ref --quiet --short HEAD 2>/dev/null)" || return 0
+  printf ' (%s)' "$b"
+}
+PS1='\[\033[01;36m\]\u@cosmos\[\033[00m\]:\[\033[01;33m\]\w\[\033[01;35m\]$(__cosmos_git_branch)\[\033[00m\]\$ '
+
+# Welcome banner - shown once per shell.
+if [ ! -f "$HOME/.cosmos/no-banner" ] && [ -z "$COSMOS_BANNER_SHOWN" ]; then
+  export COSMOS_BANNER_SHOWN=1
+  if [ -f /etc/cosmos/motd ]; then
+    cat /etc/cosmos/motd
+  fi
+fi

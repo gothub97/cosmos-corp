@@ -1,0 +1,73 @@
+id: ch03.m01.first-look
+title: "First look at the cluster"
+chapter: 3
+order: 1
+container_image: cosmos/k8s-lab:latest
+intro_dialogue: dialogue.md
+outro_dialogue: outro.md
+setup: setup.sh
+check: check.sh
+summary: "Confirm the cluster is alive - kubectl version, cluster-info, get nodes."
+
+cluster_view:
+  watch_namespace: default
+  watch_kinds: [node]
+  poll_interval_ms: 2000
+
+objectives:
+  - id: ran_version
+    label: "Confirm kubectl is talking to the cluster"
+    lesson:
+      command: "kubectl version"
+      summary: "Prints the version of the kubectl client AND the version of the API server it's talking to. If the *Server Version* line shows up, you've got a healthy connection - that's the first thing to check on any cluster you're new to."
+      syntax: "kubectl version [--short] [--client]"
+      examples:
+        - input: "kubectl version"
+          output: |
+            Client Version: v1.30.4+k3s1
+            Server Version: v1.30.4+k3s1
+          note: "Two lines: who *you* are (client) and who *they* are (server)."
+        - input: "kubectl version --client"
+          note: "`--client` skips the server round-trip - useful when the API is unreachable."
+    hints:
+      - "Always start by checking *which cluster* you're pointed at and *whether you can reach it*."
+      - "The kubectl subcommand for that takes one word - the same word you'd use for any tool."
+      - "Run `kubectl version`."
+
+  - id: saw_cluster_info
+    label: "Ask the cluster who it is"
+    lesson:
+      command: "kubectl cluster-info"
+      summary: "Prints the URL of the API server (and addons like CoreDNS, when present). Handy for two reasons: it confirms your kubeconfig is pointing where you think, and it shows the endpoints other tools will need."
+      syntax: "kubectl cluster-info [--context <name>]"
+      examples:
+        - input: "kubectl cluster-info"
+          output: |
+            Kubernetes control plane is running at https://127.0.0.1:6443
+            CoreDNS is running at ...
+          note: "If this hangs or errors, your kubeconfig is wrong or the API is down - fix that before anything else."
+    hints:
+      - "There's a kubectl subcommand that prints the *information* about the *cluster* you're connected to."
+      - "Two words, hyphenated."
+      - "Run `kubectl cluster-info`."
+
+  - id: listed_nodes
+    label: "List the nodes that make up the cluster"
+    lesson:
+      command: "kubectl get"
+      summary: "`kubectl get <kind>` is the most-used command in Kubernetes. Lists every resource of that kind in the current namespace (or cluster-scoped kinds like Node). Add `-A` for *all* namespaces, `-o wide` for extra columns, `-o yaml` to dump the full spec."
+      syntax: "kubectl get <kind> [name] [-n <ns>] [-A] [-o wide|yaml|json]"
+      examples:
+        - input: "kubectl get nodes"
+          output: |
+            NAME       STATUS   ROLES                  AGE   VERSION
+            cosmos-1   Ready    control-plane,master   2m    v1.30.4+k3s1
+          note: "Status `Ready` is what you want. `NotReady` means the kubelet can't reach the API."
+        - input: "kubectl get pods -A"
+          note: "`-A` lists across every namespace - useful for `What's even running here?`."
+        - input: "kubectl get nodes -o wide"
+          note: "`-o wide` adds IP addresses, OS, kernel version - gold during a debug session."
+    hints:
+      - "A Kubernetes cluster is a control plane + one or more *nodes*. Look at the nodes."
+      - "The kubectl verb that lists things is the same word you'd use to *get* something."
+      - "Run `kubectl get nodes`."

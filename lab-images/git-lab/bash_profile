@@ -1,0 +1,4 @@
+# Login-shell entry point: defer to .bashrc so settings apply everywhere.
+if [ -f "$HOME/.bashrc" ]; then
+  . "$HOME/.bashrc"
+fi

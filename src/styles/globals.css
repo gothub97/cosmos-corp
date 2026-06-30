@@ -1,0 +1,158 @@
+@import "tailwindcss";
+@import "@xterm/xterm/css/xterm.css";
+
+/* ─────────────────────────────────────────────────────────────────────────────
+ * Cosmos Corp - Tailwind v4 design tokens
+ *
+ * Dark theme with a subtle CRT/terminal aesthetic. Monospace for tech bits,
+ * sans-serif for narrative copy. Encouraging tone - never condescending.
+ * ───────────────────────────────────────────────────────────────────────── */
+@theme {
+  --font-sans:
+    "Inter", system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue",
+    Arial, sans-serif;
+  --font-mono:
+    "JetBrains Mono", "Fira Code", "SF Mono", Menlo, Consolas, "Liberation Mono",
+    monospace;
+
+  /* Cosmos palette - deep space with a CRT phosphor green accent. */
+  --color-cosmos-bg: #07090d;
+  --color-cosmos-panel: #0d1117;
+  --color-cosmos-panel-2: #131a24;
+  --color-cosmos-border: #1f2a37;
+  --color-cosmos-text: #d6e0ee;
+  --color-cosmos-muted: #7d8aa0;
+
+  --color-phosphor-50: #e6fff4;
+  --color-phosphor-200: #9bf3c4;
+  --color-phosphor-400: #4cd996;
+  --color-phosphor-500: #2bbf78;
+  --color-phosphor-600: #1d9c60;
+
+  --color-amber-cursor: #ffb454;
+  --color-danger: #ff5c5c;
+}
+
+:root {
+  color-scheme: dark;
+  background-color: var(--color-cosmos-bg);
+  color: var(--color-cosmos-text);
+  font-family: var(--font-sans);
+  font-synthesis: none;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+html,
+body,
+#root {
+  height: 100%;
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  /* very subtle scanline + vignette for the CRT vibe - unobtrusive */
+  background-color: var(--color-cosmos-bg);
+  background-image:
+    radial-gradient(
+      ellipse at center,
+      transparent 0%,
+      rgba(0, 0, 0, 0.45) 100%
+    ),
+    repeating-linear-gradient(
+      0deg,
+      rgba(255, 255, 255, 0.012) 0px,
+      rgba(255, 255, 255, 0.012) 1px,
+      transparent 1px,
+      transparent 3px
+    );
+  overflow: hidden;
+}
+
+/* Reduce motion: kill scanlines + animations for sensitive users. */
+@media (prefers-reduced-motion: reduce) {
+  body {
+    background-image: none;
+  }
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+/* Focus rings - visible against the dark theme, monospace-friendly. */
+:focus-visible {
+  outline: 2px solid var(--color-phosphor-400);
+  outline-offset: 2px;
+  border-radius: 2px;
+}
+
+/* xterm.js cosmetic tweaks: round corners, soft border. */
+.xterm,
+.xterm-viewport,
+.xterm-screen {
+  border-radius: 6px;
+}
+
+.xterm-viewport {
+  background-color: transparent !important;
+}
+
+/* Typewriter caret used in DialogueBox. */
+@keyframes cosmos-caret-blink {
+  0%,
+  49% {
+    opacity: 1;
+  }
+  50%,
+  100% {
+    opacity: 0;
+  }
+}
+
+.cosmos-caret::after {
+  content: "▍";
+  display: inline-block;
+  margin-left: 2px;
+  color: var(--color-phosphor-400);
+  animation: cosmos-caret-blink 1s steps(1) infinite;
+}
+
+/* Objective tick - gentle pop animation when an objective completes. */
+@keyframes cosmos-tick-pop {
+  0% {
+    transform: scale(0.6);
+    opacity: 0;
+  }
+  60% {
+    transform: scale(1.15);
+    opacity: 1;
+  }
+  100% {
+    transform: scale(1);
+    opacity: 1;
+  }
+}
+
+.cosmos-tick-pop {
+  animation: cosmos-tick-pop 320ms ease-out;
+}
+
+/* Soft glow used on title + chapter cards. */
+.cosmos-glow {
+  text-shadow:
+    0 0 8px rgba(76, 217, 150, 0.35),
+    0 0 24px rgba(76, 217, 150, 0.15);
+}
+
+/* Utility: thin scrollbars that match the theme. */
+* {
+  scrollbar-width: thin;
+  scrollbar-color: var(--color-cosmos-border) transparent;
+}

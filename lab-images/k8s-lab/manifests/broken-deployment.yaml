@@ -1,0 +1,37 @@
+# Intentionally-broken Deployment for Chapter 3 mission 06 (debug-crashloop).
+# The image tag does not exist on Docker Hub, so kubelet hits ImagePullBackOff
+# forever. The mission asks the player to:
+#   1. notice the pod is stuck (kubectl get pods)
+#   2. inspect WHY (kubectl describe pod / kubectl events)
+#   3. fix it via `kubectl edit deploy/broken` - change the image to nginx:alpine
+#      (or any pullable tag) - and watch the pod recover live in the cluster
+#      view.
+#
+# Labels:
+#   app=broken    → selector + pod label, used by check.sh validators
+#   mission=ch03-m06 → so setup.sh can `kubectl delete -l mission=ch03-m06`
+#                      between retries without yanking other resources.
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: broken
+  labels:
+    app: broken
+    mission: ch03-m06
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: broken
+  template:
+    metadata:
+      labels:
+        app: broken
+        mission: ch03-m06
+    spec:
+      containers:
+        - name: web
+          # ⚠ THIS TAG DOES NOT EXIST. That's the bug the player has to fix.
+          image: nginx:cosmos-broken-do-not-exist
+          ports:
+            - containerPort: 80

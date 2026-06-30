@@ -1,0 +1,47 @@
+# Reference ConfigMap + Pod combo for Chapter 3 mission 05.
+# The player creates their own ConfigMap with `kubectl create configmap` and
+# wires it into a Pod. This file is just the cheat-sheet they can `cat` during
+# the lesson - it shows the two ways to consume config in a Pod (envFrom and
+# a mounted file).
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: app-config-sample
+  labels:
+    app: app-config-sample
+    mission: example
+data:
+  GREETING: "hello, cosmos"
+  REGION: "sol-3"
+  config.yaml: |
+    motd: "Welcome aboard, pilot."
+    logLevel: info
+---
+apiVersion: v1
+kind: Pod
+metadata:
+  name: app-sample
+  labels:
+    app: app-sample
+    mission: example
+spec:
+  restartPolicy: Never
+  containers:
+    - name: app
+      image: nginx:alpine
+      # Surface every ConfigMap key as an environment variable.
+      envFrom:
+        - configMapRef:
+            name: app-config-sample
+      # ALSO mount config.yaml as a file under /etc/cosmos/
+      volumeMounts:
+        - name: cosmos-cfg
+          mountPath: /etc/cosmos
+          readOnly: true
+  volumes:
+    - name: cosmos-cfg
+      configMap:
+        name: app-config-sample
+        items:
+          - key: config.yaml
+            path: config.yaml

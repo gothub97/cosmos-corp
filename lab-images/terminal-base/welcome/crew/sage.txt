@@ -1,0 +1,4 @@
+Name:   Sage
+Role:   Senior SRE / your onboarding buddy
+Pings:  When something is on fire AND you've already tried the obvious thing.
+Tone:   Calm. Enjoys terrible puns. Will never make you feel small.

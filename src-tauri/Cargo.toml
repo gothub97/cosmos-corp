@@ -17,7 +17,21 @@ tauri = { version = "2", features = [] }
 tauri-plugin-opener = "2"
 serde = { version = "1", features = ["derive"] }
 serde_json = "1"
-# Stream A will add: portable-pty, bollard, tokio, tracing, anyhow, thiserror
+
+# Stream A - backend runtime + PTY + Docker + diagnostics
+tokio = { version = "1", features = ["full"] }
+portable-pty = "0.8"
+bollard = "0.18"
+anyhow = "1"
+thiserror = "2"
+tracing = "0.1"
+tracing-subscriber = { version = "0.3", features = ["env-filter"] }
+once_cell = "1"
+futures-util = "0.3"
+bytes = "1"
+chrono = { version = "0.4", features = ["serde"] }
+serde_yaml = "0.9"
+base64 = "0.22"
 
 [profile.release]
 codegen-units = 1

@@ -1,0 +1,17 @@
+id: ch03
+title: "The Cluster"
+order: 3
+summary: |
+  Week three at Cosmos Corp. Sage hands you a real Kubernetes cluster (a
+  single-node k3s spinning up inside the lab box) and walks you through the
+  shapes that matter - pods, deployments, services, configmaps, secrets - by
+  watching them light up live in the cluster view as you run kubectl.
+intro: |
+  Sage rolls up to your desk with two coffees: *"This is where it gets fun.
+  You're going to watch the cluster react to every command you type. Pods
+  appearing, services lighting up, a broken deployment going red and then
+  green again when you fix it - all live."*
+
+  By the end of the chapter you'll be running the half-dozen kubectl
+  invocations every k8s engineer types in their sleep, AND you'll have a
+  mental picture of what's actually happening when you do.

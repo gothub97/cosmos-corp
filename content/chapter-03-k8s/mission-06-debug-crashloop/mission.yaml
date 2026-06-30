@@ -1,0 +1,64 @@
+id: ch03.m06.debug-crashloop
+title: "Debug a stuck deployment"
+chapter: 3
+order: 6
+container_image: cosmos/k8s-lab:latest
+intro_dialogue: dialogue.md
+outro_dialogue: outro.md
+setup: setup.sh
+check: check.sh
+summary: "A broken Deployment is in your namespace. Use describe + edit to fix it."
+
+cluster_view:
+  watch_namespace: default
+  watch_kinds: [deployment, replicaset, pod]
+  poll_interval_ms: 2000
+
+objectives:
+  - id: described_broken
+    label: "Use `kubectl describe` to investigate the broken pod"
+    lesson:
+      command: "kubectl describe"
+      summary: "Same `kubectl describe` you met in mission 02 - but now the *Events:* block is the entire point. When a pod is stuck, kubelet writes one event per attempt explaining why. `Failed to pull image \"...\": not found` is impossible to miss once you scroll there."
+      syntax: "kubectl describe pod <name>  OR  kubectl describe -l <label>"
+      examples:
+        - input: "kubectl describe pod -l app=broken"
+          note: "Selects the broken pod by label, dumps its full status. Scroll to `Events:` at the bottom - that's where the error lives."
+        - input: "kubectl describe deploy/broken"
+          note: "You can describe higher-level objects too - the Deployment shows rollout status + the latest condition."
+    hints:
+      - "The cluster view shows a red pod under `deploy/broken`. Find out *why* it's red."
+      - "Use `kubectl describe` on the broken pod (or on the Deployment)."
+      - "Run `kubectl describe pod -l app=broken` and scroll to the `Events:` section."
+
+  - id: viewed_broken_logs
+    label: "Try to read logs from the broken pod"
+    lesson:
+      command: "kubectl logs"
+      summary: "Same `kubectl logs` from mission 02. `--previous` (alias `-p`) is the gold one for crashloops - it reads the *last terminated* container's logs even if the live one hasn't started yet. For an ImagePullBackOff there's no log stream at all (the container never started), but trying is a useful instinct."
+      syntax: "kubectl logs <pod> [-p|--previous] [-f] [--tail=N]"
+      examples:
+        - input: "kubectl logs -l app=broken --tail=100"
+          note: "Selecting by label; `--tail=100` keeps the output bounded."
+        - input: "kubectl logs <pod> --previous"
+          note: "When a pod is in CrashLoopBackOff, the *current* container is dead and has no logs - `--previous` reads the previous attempt's stdout."
+    hints:
+      - "Standard reflex on a stuck pod: ask for its logs, even if you suspect the container never started."
+      - "`kubectl logs -l app=broken` will tell you which is which."
+      - "Run `kubectl logs -l app=broken` (any form is fine - empty output is itself a clue)."
+
+  - id: fixed_image
+    label: "Fix the bad image so the pod becomes Running"
+    lesson:
+      command: "kubectl edit"
+      summary: "Opens the resource's YAML in your `$EDITOR` (nano in this lab). When you save and quit, kubectl diffs your edits and applies them as a patch. Quick fix for one-off tweaks; for repeatable changes, edit the file in git and `kubectl apply -f`."
+      syntax: "kubectl edit <kind>/<name>"
+      examples:
+        - input: "kubectl edit deploy/broken"
+          note: "Find the line `image: nginx:cosmos-broken-do-not-exist` and change it to `image: nginx:alpine`. Save (^O, Enter), exit (^X). The Deployment will roll out a new ReplicaSet automatically."
+        - input: "kubectl set image deploy/broken web=nginx:alpine"
+          note: "The pure-CLI alternative - no editor, just patches the image field in place."
+    hints:
+      - "The image tag in the broken Deployment doesn't exist. Change it to a real one (e.g. `nginx:alpine`)."
+      - "Easiest path: `kubectl edit deploy/broken`, find the bad image, save and quit."
+      - "Or one-shot: `kubectl set image deploy/broken web=nginx:alpine`. Watch the cluster view go red → amber → green."

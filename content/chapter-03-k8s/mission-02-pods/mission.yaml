@@ -1,0 +1,116 @@
+id: ch03.m02.pods
+title: "Pods - the smallest moving part"
+chapter: 3
+order: 2
+container_image: cosmos/k8s-lab:latest
+intro_dialogue: dialogue.md
+outro_dialogue: outro.md
+setup: setup.sh
+check: check.sh
+summary: "Run a pod, list pods, describe it, read its logs, delete it."
+
+cluster_view:
+  watch_namespace: default
+  watch_kinds: [pod]
+  poll_interval_ms: 2000
+
+objectives:
+  - id: created_pod
+    label: "Create a pod called `tinypod` running nginx"
+    lesson:
+      command: "kubectl run"
+      summary: "Spawns a single Pod from a name + image. The simplest possible way to put workload on a cluster - handy for one-off debugging shells, throwaway tests, and exactly the situation we're in right now (poking a cluster to see how it behaves)."
+      syntax: "kubectl run <name> --image=<image> [--rm -it -- <cmd>]"
+      examples:
+        - input: "kubectl run tinypod --image=nginx:alpine"
+          output: |
+            pod/tinypod created
+          note: "One pod, one container, default labels."
+        - input: "kubectl run shell --rm -it --image=alpine -- /bin/sh"
+          note: "Spawn an interactive shell inside a throwaway pod (`--rm` cleans up on exit). The classic `let me just check from inside the cluster` move."
+    hints:
+      - "There's a kubectl verb that *runs* a single ad-hoc pod from an image."
+      - "It takes a name and an `--image=` flag."
+      - "Try `kubectl run tinypod --image=nginx:alpine`."
+
+  - id: listed_pods
+    label: "List the pods in the default namespace"
+    lesson:
+      command: "kubectl get"
+      summary: "Same `kubectl get` you used on nodes - this time aimed at pods. The status column is what you watch: `Running` is green, `Pending` is amber (still scheduling / pulling images), anything else is something to investigate."
+      syntax: "kubectl get pods [-A] [-o wide]"
+      examples:
+        - input: "kubectl get pods"
+          output: |
+            NAME      READY   STATUS    RESTARTS   AGE
+            tinypod   1/1     Running   0          12s
+          note: "READY shows ready-containers / total-containers. 1/1 = healthy."
+        - input: "kubectl get pods -o wide"
+          note: "Adds the pod IP and which node it landed on - useful when you're about to look up logs across multiple nodes."
+    hints:
+      - "List pods the same way you listed nodes."
+      - "It's `kubectl get` followed by the kind."
+      - "Run `kubectl get pods`."
+
+  - id: described_pod
+    label: "Describe `tinypod` to see what's inside"
+    lesson:
+      command: "kubectl describe"
+      summary: "Long-form, human-readable dump of a resource: every field of the spec, the status, the recent events, the container statuses. The first command you run when something looks off - the `Events:` block at the bottom usually tells you what went wrong."
+      syntax: "kubectl describe <kind>/<name>  OR  kubectl describe <kind> <name>"
+      examples:
+        - input: "kubectl describe pod tinypod"
+          note: "Same as `pod/tinypod` - both forms work."
+        - input: "kubectl describe pod/tinypod"
+          output: |
+            Name:         tinypod
+            Namespace:    default
+            ...
+            Containers:
+              tinypod:
+                Image:    nginx:alpine
+                ...
+            Events:
+              Type    Reason     ...
+              Normal  Scheduled  ...
+          note: "Scroll to the bottom - the `Events:` section is where the truth lives."
+    hints:
+      - "There's a kubectl verb that gives you the long *description* of a resource."
+      - "It's six letters."
+      - "Run `kubectl describe pod tinypod`."
+
+  - id: viewed_logs
+    label: "Read the logs that nginx is writing"
+    lesson:
+      command: "kubectl logs"
+      summary: "Streams stdout/stderr from a container in a pod. Add `-f` to tail (like `tail -f`), `--previous` to read the last container's logs after a crash, `-c <name>` to pick one of several containers."
+      syntax: "kubectl logs <pod> [-c <container>] [-f] [--previous] [--tail=N]"
+      examples:
+        - input: "kubectl logs tinypod"
+          note: "Just dump everything stdout has emitted so far."
+        - input: "kubectl logs -f tinypod"
+          note: "Follow mode - leaves the stream open."
+        - input: "kubectl logs --previous tinypod"
+          note: "Reads the *previous* container's logs - gold during a crashloop, when the live pod doesn't have the actual error yet."
+    hints:
+      - "Containers write to stdout. Kubernetes can show you that stream."
+      - "There's a kubectl verb that's literally the noun for what you want."
+      - "Run `kubectl logs tinypod`."
+
+  - id: deleted_pod
+    label: "Delete `tinypod`"
+    lesson:
+      command: "kubectl delete"
+      summary: "Removes a resource. By default it sends `terminationGracePeriodSeconds` (30s for pods) so containers can shut down cleanly - `--grace-period=0 --force` if you don't want to wait. You can delete by name, by label (`-l`), or by file (`-f`)."
+      syntax: "kubectl delete <kind>/<name>  OR  kubectl delete <kind> -l <label>=<value>"
+      examples:
+        - input: "kubectl delete pod tinypod"
+          output: |
+            pod \"tinypod\" deleted
+          note: "Watch the pod fade out of the cluster view as kubelet stops the container."
+        - input: "kubectl delete pods -l app=demo"
+          note: "Bulk delete by label selector - the same shape `kubectl get -l ...` and `kubectl describe -l ...` understand."
+    hints:
+      - "Now clean up - the cluster view will show the node fade out as the pod terminates."
+      - "There's a kubectl verb that's the opposite of `create`."
+      - "Run `kubectl delete pod tinypod`."

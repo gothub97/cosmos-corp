@@ -1,0 +1,46 @@
+# Cosmos Corp dev shell - k8s-lab variant.
+# Same beginner-friendly defaults as terminal-base / git-lab, plus the
+# KUBECONFIG export. We deliberately do NOT alias `k='kubectl'` - Daymari needs
+# the muscle memory of typing `kubectl` to transfer 1:1 to her real work.
+
+# Quietly bail if not interactive.
+case $- in
+  *i*) ;;
+    *) return ;;
+esac
+
+# History: append, share across shells, ignore dupes & space-prefixed commands.
+shopt -s histappend
+HISTCONTROL=ignoredups:ignorespace
+HISTSIZE=2000
+HISTFILESIZE=5000
+PROMPT_COMMAND="history -a; ${PROMPT_COMMAND:-:}"
+
+# Sensible default: colourful ls, useful aliases.
+alias ls='ls --color=auto'
+alias ll='ls -lah --color=auto'
+alias la='ls -A --color=auto'
+alias grep='grep --color=auto'
+
+# Make sure kubectl can find the cluster the entrypoint set up.
+export KUBECONFIG="${KUBECONFIG:-$HOME/.kube/config}"
+
+# Prompt: cyan user@host, yellow cwd, magenta k8s context, green prompt char.
+__cosmos_kube_ctx() {
+  # Skip the prompt segment if there's no kubeconfig yet (the container is
+  # still mid-boot during the first second or two).
+  [ -f "$KUBECONFIG" ] || return 0
+  local ctx
+  ctx="$(kubectl config current-context 2>/dev/null)" || return 0
+  [ -z "$ctx" ] && return 0
+  printf ' (k8s:%s)' "$ctx"
+}
+PS1='\[\033[01;36m\]\u@cosmos\[\033[00m\]:\[\033[01;33m\]\w\[\033[01;35m\]$(__cosmos_kube_ctx)\[\033[00m\]\$ '
+
+# Welcome banner - shown once per shell.
+if [ ! -f "$HOME/.cosmos/no-banner" ] && [ -z "$COSMOS_BANNER_SHOWN" ]; then
+  export COSMOS_BANNER_SHOWN=1
+  if [ -f /etc/cosmos/motd ]; then
+    cat /etc/cosmos/motd
+  fi
+fi

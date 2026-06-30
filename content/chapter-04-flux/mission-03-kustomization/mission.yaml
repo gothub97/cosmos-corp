@@ -1,0 +1,73 @@
+id: ch04.m03.kustomization
+title: "Deploy from git"
+chapter: 4
+order: 3
+container_image: cosmos/flux-lab:latest
+intro_dialogue: dialogue.md
+outro_dialogue: outro.md
+setup: setup.sh
+check: check.sh
+summary: "Stack a Kustomization on the source so Flux applies the manifests - and the cosmos-web app rolls out straight from git."
+
+cluster_view:
+  watch_namespace: default
+  watch_kinds: [gitrepository, kustomization, deployment, replicaset, pod]
+  poll_interval_ms: 2000
+
+objectives:
+  - id: created_kustomization
+    label: "Create a Kustomization named `cosmos-web`"
+    lesson:
+      command: "flux create kustomization"
+      summary: "A Kustomization is the 'apply' half of Flux. It takes a source (your GitRepository) plus a path inside it, and the kustomize-controller applies every manifest under that path to the cluster - then keeps re-applying on its interval so the cluster never drifts from git. `--prune=true` means it also *deletes* cluster objects you remove from git. This is the object that actually deploys things."
+      syntax: "flux create kustomization <name> --source=<kind>/<name> --path=<path> --prune=true --interval=<dur> -n <ns>"
+      examples:
+        - input: "flux create kustomization cosmos-web --source=GitRepository/cosmos-deploy --path=./deploy --prune=true --interval=1m -n default"
+          output: |
+            ► applying Kustomization cosmos-web
+            ✔ Kustomization cosmos-web is ready
+          note: "`--path=./deploy` points at the deploy/ folder in the repo. Everything in there gets applied."
+        - input: "flux create kustomization apps --source=GitRepository/cosmos-deploy --path=./clusters/prod --prune=true --interval=10m"
+          note: "Different path, same shape. Big setups have one Kustomization per environment, each watching a different folder."
+    hints:
+      - "The source only *fetches*. To *apply* the manifests you need a Kustomization on top of it."
+      - "It's `flux create kustomization <name> --source=GitRepository/cosmos-deploy --path=./deploy --prune=true --interval=1m -n default`."
+      - "Run: `flux create kustomization cosmos-web --source=GitRepository/cosmos-deploy --path=./deploy --prune=true --interval=1m -n default`"
+
+  - id: app_deployed
+    label: "Watch the `cosmos-web` app roll out from git"
+    lesson:
+      command: "kubectl get deploy cosmos-web -n default"
+      summary: "The moment the Kustomization reconciles, kustomize-controller applies the Deployment from `deploy/cosmos-web.yaml` - and a real `cosmos-web` Deployment, ReplicaSet, and Pods appear in the cluster, exactly as if you'd run `kubectl apply` yourself. Except you didn't: git did. Confirm the app is up the same way you would for any Deployment."
+      syntax: "kubectl get deploy <name> -n <ns>"
+      examples:
+        - input: "kubectl get deploy cosmos-web -n default"
+          output: |
+            NAME         READY   UP-TO-DATE   AVAILABLE   AGE
+            cosmos-web   2/2     2            2           20s
+          note: "2/2 - the repo declares replicas: 2, and Flux made the cluster match. You never touched kubectl apply."
+        - input: "kubectl get deploy,rs,pods -l app=cosmos-web -n default"
+          note: "The whole ownership chain Flux created on your behalf - Deployment → ReplicaSet → Pods."
+    hints:
+      - "Once the Kustomization is created, Flux applies the manifests. Confirm the app showed up - same `kubectl get` you know."
+      - "Look for a Deployment named `cosmos-web` in the default namespace."
+      - "Run `kubectl get deploy cosmos-web -n default` (the cluster view will show it materialise too)."
+
+  - id: kustomization_ready
+    label: "Confirm the Kustomization reconciled (Ready = True)"
+    lesson:
+      command: "flux get kustomizations"
+      summary: "`flux get kustomizations` is the focused view of your apply layer: which revision each Kustomization applied, whether it's Ready, and the last message. Ready = True means *the cluster currently matches git*. It's the single most useful Flux status command - when something's wrong, this is where you start."
+      syntax: "flux get kustomizations [-A] [-n <ns>]"
+      examples:
+        - input: "flux get kustomizations -n default"
+          output: |
+            NAME         REVISION        SUSPENDED  READY  MESSAGE
+            cosmos-web   main@sha1:1a2b  False      True   Applied revision: main@sha1:1a2b
+          note: "`Applied revision` names the exact commit now live in the cluster. That's the GitOps audit trail, for free."
+        - input: "flux reconcile kustomization cosmos-web -n default"
+          note: "Force an immediate re-apply instead of waiting for the interval - the same `reconcile` you used on the source."
+    hints:
+      - "Confirm the apply layer is healthy: the Kustomization should read Ready = True."
+      - "The focused view is `flux get kustomizations` (scope with `-n default`)."
+      - "Run `flux get kustomizations -n default`."

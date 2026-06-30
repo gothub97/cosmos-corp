@@ -1,0 +1,77 @@
+id: ch01.m02.reading-files
+title: "Reading files"
+chapter: 1
+order: 2
+container_image: cosmos/terminal-base:latest
+intro_dialogue: dialogue.md
+outro_dialogue: outro.md
+setup: setup.sh
+check: check.sh
+summary: "Look inside files - cat, less, head, tail."
+
+objectives:
+  - id: read_readme
+    label: "Print the README to your screen"
+    lesson:
+      command: "cat"
+      summary: "Dumps a file's contents straight to the terminal. Best for short files - for long ones you'll want `less`, `head`, or `tail` instead."
+      syntax: "cat [FILE...]"
+      examples:
+        - input: "cat README.md"
+          note: "Prints the whole file at once."
+        - input: "cat a.txt b.txt"
+          note: "Concatenates several files in order - that's where the name comes from."
+    hints:
+      - "Open `welcome/README.md` so you can see all of it at once."
+      - "There's a 3-letter command that *concatenates* a file to standard output."
+      - "Try `cat welcome/README.md`."
+
+  - id: head_manifest
+    label: "Show the first 5 lines of welcome/manifest.log"
+    lesson:
+      command: "head"
+      summary: "Shows the *first* lines of a file. Defaults to 10; use `-n N` to ask for a different count."
+      syntax: "head [-n LINES] [FILE]"
+      examples:
+        - input: "head manifest.log"
+          note: "Default: first 10 lines."
+        - input: "head -n 5 manifest.log"
+          note: "First 5 lines."
+    hints:
+      - "The log is huge - you only want the very first few lines."
+      - "There's a command literally named for the top of a file. Pass `-n 5`."
+      - "Try `head -n 5 welcome/manifest.log`."
+
+  - id: tail_manifest
+    label: "Show the last 10 lines of welcome/manifest.log"
+    lesson:
+      command: "tail"
+      summary: "Shows the *last* lines of a file - the cousin of `head`. Defaults to 10. Add `-f` to follow a growing log file in real time."
+      syntax: "tail [-n LINES] [-f] [FILE]"
+      examples:
+        - input: "tail manifest.log"
+          note: "Default: last 10 lines."
+        - input: "tail -n 20 manifest.log"
+          note: "Last 20 lines."
+        - input: "tail -f /var/log/syslog"
+          note: "Live-follow a log as it grows. Ctrl+C to stop."
+    hints:
+      - "Same idea as `head`, opposite end of the file."
+      - "Run the cousin of `head` - and `-n 10` if you want exactly ten."
+      - "Try `tail -n 10 welcome/manifest.log` (or just `tail welcome/manifest.log`)."
+
+  - id: opened_less
+    label: "Open welcome/manifest.log in a pager"
+    lesson:
+      command: "less"
+      summary: "Opens a file in a scrollable pager - much better than `cat` for anything over a screenful. Inside `less`, arrow keys / space / `g` / `G` navigate, `/word` searches, `q` quits."
+      syntax: "less [FILE]"
+      examples:
+        - input: "less manifest.log"
+          note: "Opens the file. Press `q` to come back to the prompt."
+        - input: "less +F manifest.log"
+          note: "Start in follow-mode (like `tail -f`). Ctrl+C drops back to normal less."
+    hints:
+      - "For files this big, you want a *scrollable* view, not a flood of output."
+      - "The pager command is named for the opposite of `more`. Press `q` to quit."
+      - "Try `less welcome/manifest.log` and press `q` when you're ready to come back."

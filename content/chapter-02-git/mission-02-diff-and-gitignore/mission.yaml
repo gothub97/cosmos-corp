@@ -1,0 +1,75 @@
+id: ch02.m02.diff-and-gitignore
+title: "What changed, and what to ignore"
+chapter: 2
+order: 2
+container_image: cosmos/git-lab:latest
+intro_dialogue: dialogue.md
+outro_dialogue: outro.md
+setup: setup.sh
+check: check.sh
+summary: "git diff to see changes, .gitignore to hide noise."
+
+objectives:
+  - id: ran_diff
+    label: "See what changed in notes.md"
+    lesson:
+      command: "git diff"
+      summary: "Shows the differences between two snapshots - usually 'what's in my working tree that isn't yet staged.' Lines starting with `-` were removed, lines with `+` were added."
+      syntax: "git diff [--staged] [<path>]"
+      examples:
+        - input: "git diff"
+          output: |
+            diff --git a/notes.md b/notes.md
+            index 0c1f2..a1b2 100644
+            --- a/notes.md
+            +++ b/notes.md
+            @@ -3,3 +3,3 @@
+            -- Sage takes coffeee black. Important.
+            +- Sage takes coffee black. Important.
+          note: "By default: working tree vs. staging area."
+        - input: "git diff --staged"
+          note: "What's staged but not yet committed."
+        - input: "git diff HEAD"
+          note: "Everything (staged + unstaged) compared to the last commit."
+    hints:
+      - "Sage already edited notes.md for you. Find out *what* changed before committing."
+      - "There's a git command for showing differences."
+      - "Run `git diff` (or `git diff notes.md`)."
+
+  - id: created_gitignore
+    label: "Create a .gitignore that excludes secrets.env and the build/ folder"
+    lesson:
+      command: ".gitignore"
+      summary: "A plain text file (literally named `.gitignore`) listing patterns of files git should pretend don't exist. Each line is a pattern: a filename, a folder, or a glob like `*.log`. Anything matching is hidden from `git status` and never committed by `git add`."
+      syntax: "<pattern>  # one per line, # for comments"
+      examples:
+        - input: 'echo "secrets.env" > .gitignore'
+          note: "Ignore a single file."
+        - input: |
+            cat > .gitignore <<EOF
+            secrets.env
+            build/
+            *.log
+            EOF
+          note: "Several patterns - one filename, one folder (`build/`), one glob (`*.log`)."
+        - input: "git check-ignore -v build/output.log"
+          output: ".gitignore:2:build/  build/output.log"
+          note: "`check-ignore` tells you *why* a path is ignored. Handy for debugging."
+    hints:
+      - "Tell git to stop nagging you about `secrets.env` and the `build/` folder by adding a `.gitignore` file."
+      - "Each line is one pattern: a filename, or a folder ending in `/`."
+      - "Run something like `printf 'secrets.env\\nbuild/\\n' > .gitignore`."
+
+  - id: ignored_extras
+    label: "Confirm both junk paths are actually ignored"
+    hints:
+      - "After saving the .gitignore, `git status` shouldn't list `secrets.env` or `build/` anymore."
+      - "If they still show, double-check the patterns - `build/` (with the slash) ignores the folder; `build` alone would also work but is less precise."
+      - "Run `git status` and look at the Untracked files section - neither should be there."
+
+  - id: committed_change
+    label: "Commit your fix and the new .gitignore"
+    hints:
+      - "Stage the modified notes.md and the brand-new .gitignore."
+      - "Two `git add` paths and one `git commit -m` will do it."
+      - "Try `git add notes.md .gitignore && git commit -m \"Fix typo, ignore noise\"`."

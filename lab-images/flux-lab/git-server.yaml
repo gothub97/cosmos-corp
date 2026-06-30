@@ -1,0 +1,54 @@
+# In-cluster handle for the smart-HTTP git server (Chapter 4 / FluxCD).
+#
+# Flux's source-controller runs as a pod, so the GitRepository URL it clones
+# must be cluster-routable. The actual git server is a SMART-HTTP apache process
+# running on the node (the flux-lab container itself) on :8080 - see
+# git-http.conf and flux-entrypoint.sh. We expose it to the cluster with a
+# selectorless Service + a manual Endpoints object pointing at the node's
+# InternalIP, which the entrypoint substitutes for __NODE_IP__ at boot.
+#
+# Pods reach the node IP via the normal pod→node route, so source-controller
+# resolves `git-server.git-system.svc.cluster.local` → ClusterIP → (kube-proxy
+# DNAT) → <node-ip>:8080 → apache → git-http-backend. Everything stays offline.
+#
+# (We deliberately do NOT use a static-file nginx pod here: go-git cannot clone
+# over dumb HTTP, so a static server leaves the GitRepository NotReady.)
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: git-system
+  labels:
+    cosmos.dev/component: git-server
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: git-server
+  namespace: git-system
+  labels:
+    app: git-server
+    cosmos.dev/component: git-server
+spec:
+  type: ClusterIP
+  ports:
+    - name: http
+      port: 80
+      targetPort: 8080
+      protocol: TCP
+---
+apiVersion: v1
+kind: Endpoints
+metadata:
+  name: git-server
+  namespace: git-system
+  labels:
+    app: git-server
+    cosmos.dev/component: git-server
+# Port name must match the Service port name ("http") for routing to work.
+subsets:
+  - addresses:
+      - ip: __NODE_IP__
+    ports:
+      - name: http
+        port: 8080
+        protocol: TCP

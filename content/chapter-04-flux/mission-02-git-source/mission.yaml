@@ -1,0 +1,74 @@
+id: ch04.m02.git-source
+title: "A source to watch"
+chapter: 4
+order: 2
+container_image: cosmos/flux-lab:latest
+intro_dialogue: dialogue.md
+outro_dialogue: outro.md
+setup: setup.sh
+check: check.sh
+summary: "Create a GitRepository source pointing Flux at the deploy repo, reconcile it, and confirm it goes Ready."
+
+cluster_view:
+  watch_namespace: default
+  watch_kinds: [gitrepository]
+  poll_interval_ms: 2000
+
+objectives:
+  - id: created_source
+    label: "Create a GitRepository source named `cosmos-deploy`"
+    lesson:
+      command: "flux create source git"
+      summary: "A GitRepository is Flux's pointer at a repo + branch + poll interval. The source-controller clones the URL and keeps a fresh copy in-cluster on the interval you give it. It deploys nothing on its own - it just makes the repo's contents available for a Kustomization to apply later. This is step one of every GitOps setup."
+      syntax: "flux create source git <name> --url=<url> --branch=<branch> --interval=<dur> -n <ns>"
+      examples:
+        - input: "flux create source git cosmos-deploy --url=http://git-server.git-system.svc.cluster.local/cosmos-deploy.git --branch=main --interval=1m -n default"
+          output: |
+            ► cloning branch "main" from Git repository ...
+            ✔ source cosmos-deploy reconciled
+          note: "The URL is the in-cluster git server - Flux runs inside the cluster, so it needs a cluster-routable address, not a localhost path."
+        - input: "flux create source git podinfo --url=https://github.com/stefanprodan/podinfo --branch=master --interval=1m"
+          note: "On the real internet you'd point at a GitHub/GitLab URL. Same command shape - only the URL changes."
+    hints:
+      - "Flux needs something to watch. Give it a *git source*: a repo URL, a branch, and how often to poll."
+      - "The command is `flux create source git <name> --url=... --branch=main --interval=1m -n default`."
+      - "Run: `flux create source git cosmos-deploy --url=http://git-server.git-system.svc.cluster.local/cosmos-deploy.git --branch=main --interval=1m -n default`"
+
+  - id: source_ready
+    label: "Confirm the source reconciled (Ready = True)"
+    lesson:
+      command: "flux reconcile source git"
+      summary: "`flux reconcile` tells a Flux object to do its job *right now* instead of waiting for its interval - here, re-clone the git source immediately. After it runs, the GitRepository's `Ready` condition flips to True, meaning the controller successfully fetched the branch. If Ready is False, the message tells you why (bad URL, branch missing, server unreachable)."
+      syntax: "flux reconcile source git <name> -n <ns>"
+      examples:
+        - input: "flux reconcile source git cosmos-deploy -n default"
+          output: |
+            ► annotating GitRepository cosmos-deploy in default namespace
+            ✔ GitRepository reconciliation completed
+            ✔ fetched revision main@sha1:...
+          note: "The `fetched revision` line is your proof the clone worked. That commit hash is what a Kustomization will deploy."
+        - input: "kubectl -n default get gitrepository cosmos-deploy"
+          note: "Plain kubectl works too - GitRepository is just a custom resource. The READY column shows True/False."
+    hints:
+      - "Don't wait a full minute for the first poll - force it, then check the source went Ready."
+      - "Force it with `flux reconcile source git cosmos-deploy -n default`."
+      - "Then confirm: the GitRepository's READY column should read True (`flux get sources git -n default`)."
+
+  - id: listed_sources
+    label: "List your Git sources and read their status"
+    lesson:
+      command: "flux get sources git"
+      summary: "`flux get sources git` is the focused view of just your GitRepository objects: name, the revision they've fetched, whether they're Ready, and the last message. It's how you answer *is Flux successfully reading my repo?* at a glance - the source layer's equivalent of `kubectl get pods`."
+      syntax: "flux get sources git [-A] [-n <ns>]"
+      examples:
+        - input: "flux get sources git -n default"
+          output: |
+            NAME           REVISION        SUSPENDED  READY  MESSAGE
+            cosmos-deploy  main@sha1:1a2b  False      True   stored artifact for revision 'main@sha1:1a2b'
+          note: "READY True + a revision = Flux has a clean copy of your repo. That's the green light to build on it."
+        - input: "flux get sources all -A"
+          note: "`sources all` widens to every source kind (git, helm, oci, bucket) across all namespaces."
+    hints:
+      - "There's a focused `flux get` for just your git sources."
+      - "It's `flux get sources git` (scope it with `-n default`)."
+      - "Run `flux get sources git -n default`."

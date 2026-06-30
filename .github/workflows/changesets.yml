@@ -1,0 +1,45 @@
+name: Changesets
+
+# On every push to main, Changesets either:
+#   - opens / updates a "Version Packages" PR (when pending changesets exist), or
+#   - runs the `release:tag` publish step (once that PR is merged and no
+#     changesets remain), which pushes a `v<version>` tag and triggers the
+#     release workflow.
+on:
+  push:
+    branches: [main]
+
+concurrency: changesets-${{ github.ref }}
+
+permissions:
+  contents: write
+  pull-requests: write
+
+jobs:
+  version:
+    name: Version / tag
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - uses: pnpm/action-setup@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: pnpm
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Create release PR or tag the release
+        uses: changesets/action@v1
+        with:
+          version: pnpm run version-packages
+          publish: pnpm run release:tag
+          commit: "chore: version packages"
+          title: "chore: version packages"
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

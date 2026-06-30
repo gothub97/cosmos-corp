@@ -1,0 +1,79 @@
+id: ch01.m03.manipulating-files
+title: "Moving things around"
+chapter: 1
+order: 3
+container_image: cosmos/terminal-base:latest
+intro_dialogue: dialogue.md
+outro_dialogue: outro.md
+setup: setup.sh
+check: check.sh
+summary: "Create, copy, rename, and delete - mkdir, touch, cp, mv, rm."
+
+objectives:
+  - id: created_logs_dir
+    label: "Create a directory ~/scratch/logs"
+    lesson:
+      command: "mkdir"
+      summary: "Creates a new (empty) directory. Add `-p` to create parents on the fly and to make it idempotent (no error if it already exists)."
+      syntax: "mkdir [-p] PATH..."
+      examples:
+        - input: "mkdir logs"
+          note: "Creates ./logs in the current directory."
+        - input: "mkdir -p a/b/c"
+          note: "`-p` creates `a`, then `a/b`, then `a/b/c` in one go."
+    hints:
+      - "You need a new folder named `logs` inside the `scratch` folder I left at `~/scratch`."
+      - "The command is short for *make directory*."
+      - "Try `mkdir ~/scratch/logs`."
+
+  - id: touched_app_log
+    label: "Create an empty file ~/scratch/logs/app.log"
+    lesson:
+      command: "touch"
+      summary: "If the file doesn't exist, creates it (empty). If it does, just bumps its modified time. Useful for placeholder files and for invalidating timestamp-based caches."
+      syntax: "touch FILE..."
+      examples:
+        - input: "touch hello.txt"
+          note: "Creates an empty hello.txt (or updates its mtime if it exists)."
+        - input: "touch a.txt b.txt c.txt"
+          note: "Multiple files in one call."
+    hints:
+      - "You can create an empty file in a single command."
+      - "The command is named after what it does: it just *touches* the file into existence."
+      - "Try `touch ~/scratch/logs/app.log`."
+
+  - id: copied_template
+    label: "Copy ~/scratch/template.txt to ~/scratch/logs/today.txt"
+    lesson:
+      command: "cp"
+      summary: "Copies a file (or, with `-r`, a directory). The first argument is the source, the second is the destination."
+      syntax: "cp [OPTIONS] SOURCE DEST"
+      examples:
+        - input: "cp a.txt b.txt"
+          note: "Makes b.txt an exact copy of a.txt."
+        - input: "cp template.txt logs/today.txt"
+          note: "Copy with a different destination filename in another folder."
+        - input: "cp -r src/ backup/"
+          note: "`-r` recursively copies a whole directory tree."
+    hints:
+      - "There's a `template.txt` ready in `~/scratch`. Make a copy of it inside `~/scratch/logs` named `today.txt`."
+      - "The command for *copy* takes two arguments: source, then destination."
+      - "Try `cp ~/scratch/template.txt ~/scratch/logs/today.txt`."
+
+  - id: removed_old_file
+    label: "Delete ~/scratch/old-notes.txt"
+    lesson:
+      command: "rm"
+      summary: "Deletes a file. Permanently. There is no recycle bin - be sure before you run it. Add `-r` for directories, `-i` to confirm each delete."
+      syntax: "rm [OPTIONS] FILE..."
+      examples:
+        - input: "rm old.txt"
+          note: "Delete a single file."
+        - input: "rm -r old-folder/"
+          note: "`-r` recursively removes a directory and everything in it."
+        - input: "rm -i *.tmp"
+          note: "`-i` asks for confirmation before each delete - handy when using wildcards."
+    hints:
+      - "There's a leftover file called `old-notes.txt` in `~/scratch`. Get rid of it."
+      - "The command for *remove* is two letters."
+      - "Try `rm ~/scratch/old-notes.txt`."
