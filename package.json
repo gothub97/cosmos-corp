@@ -1,7 +1,7 @@
 {
   "name": "cosmos-corp",
   "private": true,
-  "version": "0.1.0",
+  "version": "0.2.0",
   "type": "module",
   "description": "A macOS RPG that teaches terminal, git, k8s, and FluxCD",
   "packageManager": "pnpm@10.33.3",
